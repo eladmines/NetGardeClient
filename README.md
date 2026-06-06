@@ -32,7 +32,7 @@ make run-gui
 2. **Connect** — macOS prompts for your password (admin rights for VPN)  
 3. **Disconnect** when done  
 
-Settings are stored in `~/Library/Application Support/netgarde/gui-settings.json`.
+Settings are stored in `~/Library/Application Support/NetGardeClient/gui-settings.json`. Tunnel logs: `/tmp/netgarde-wg-<uid>/tunnel.log`.
 
 ## macOS standalone binary
 

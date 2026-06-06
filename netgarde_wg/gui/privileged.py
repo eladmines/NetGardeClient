@@ -82,11 +82,20 @@ def start_tunnel(opts: CliConfig) -> tuple[bool, str]:
 
     argv = build_tunnel_argv(opts)
     tunnel_cmd = " ".join(shlex.quote(part) for part in argv)
+    runtime = shlex.quote(str(pid_file().parent))
+    pid_path = shlex.quote(str(pid_file()))
+    log_path = shlex.quote(str(log_file()))
     script = (
-        f"PID_FILE={shlex.quote(str(pid_file()))}\n"
-        f"LOG_FILE={shlex.quote(str(log_file()))}\n"
+        f"RUNTIME_DIR={runtime}\n"
+        f'mkdir -p "$RUNTIME_DIR"\n'
+        f'chmod 755 "$RUNTIME_DIR"\n'
+        f"CONSOLE_USER=$(stat -f '%Su' /dev/console)\n"
+        f'chown "$CONSOLE_USER" "$RUNTIME_DIR" 2>/dev/null || true\n'
+        f"PID_FILE={pid_path}\n"
+        f"LOG_FILE={log_path}\n"
         f"{tunnel_cmd} >> \"$LOG_FILE\" 2>&1 &\n"
         f"echo $! > \"$PID_FILE\"\n"
+        f'chmod 644 "$PID_FILE" "$LOG_FILE" 2>/dev/null || true\n'
     )
     result = _run_admin_shell(script)
     if result.returncode != 0:
@@ -97,7 +106,7 @@ def start_tunnel(opts: CliConfig) -> tuple[bool, str]:
             return True, "Connected."
         time.sleep(0.5)
     tail = _log_tail()
-    return False, tail or "Tunnel did not start. See tunnel.log in Application Support/netgarde."
+    return False, tail or f"Tunnel did not start. See {log_file()}."
 
 
 def stop_tunnel() -> tuple[bool, str]:
