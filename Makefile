@@ -13,7 +13,6 @@ help:
 install:
 	python3 -m venv $(VENV)
 	$(PIP) install -U pip
-	$(PIP) install -r requirements.txt
 	$(PIP) install .
 
 run: install

@@ -21,9 +21,7 @@ if [[ ! -x "$PY" ]]; then
 fi
 
 "$PIP" install -U pip
-"$PIP" install -r requirements.txt
-"$PIP" install -r requirements-dev.txt
-"$PIP" install .
+"$PIP" install ".[dev]"
 
 mkdir -p "$BIN" "$DIST"
 
