@@ -30,6 +30,22 @@ Or:
 make install
 ```
 
+## macOS standalone binary
+
+Build a self-contained CLI (no Python/venv required on the target Mac). Produces `dist/netgarde-wg` and bundles `dist/wireguard-go` beside it.
+
+```bash
+make build-mac
+# or: bash scripts/build-macos.sh
+
+sudo ./dist/netgarde-wg --config ./client.example.conf
+sudo ./dist/netgarde-wg --api-url https://api.example.com --api-token YOUR_TOKEN
+```
+
+**CI:** GitHub Actions workflow [`.github/workflows/build-macos.yml`](.github/workflows/build-macos.yml) builds on every push to `main`/`develop` and uploads artifacts. Tag `v*` releases attach binaries to the GitHub release.
+
+**Distribution notes:** TUN and routes still require `sudo`. For distribution outside your machine, code-sign and notarize the binaries (Apple Developer account) to avoid Gatekeeper warnings.
+
 ## Run (offline `.conf`)
 
 ```bash

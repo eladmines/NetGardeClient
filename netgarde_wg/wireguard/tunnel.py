@@ -15,6 +15,7 @@ from typing import Iterator
 
 from netgarde_wg.cli import CliConfig
 from netgarde_wg.constants import DEFAULT_MTU, DEFAULT_WIREGUARD_PORT
+from netgarde_wg.platform.bundled import find_sibling_binary
 from netgarde_wg.platform.dns import apply_dns
 from netgarde_wg.platform.routing import apply_full_tunnel_routes
 from netgarde_wg.wireguard.config import WireGuardConfig, render_wireguard_conf
@@ -100,13 +101,18 @@ def _userspace_iface_hint(opts: CliConfig) -> str:
 
 
 def _find_wireguard_go() -> str:
+    bundled = find_sibling_binary("wireguard-go", "wireguard_go")
+    if bundled:
+        return bundled
     for name in ("wireguard-go", "wireguard_go"):
         path = shutil.which(name)
         if path:
             return path
     raise RuntimeError(
-        "wireguard-go not found in PATH. Install it (https://git.zx2c4.com/wireguard-go/) "
-        "or on Linux ensure the wireguard kernel module and `wg` are available."
+        "wireguard-go not found in PATH or next to netgarde-wg. "
+        "Install it (https://git.zx2c4.com/wireguard-go/) or place wireguard-go "
+        "in the same directory as this program. "
+        "On Linux you can use the wireguard kernel module and `wg` instead."
     )
 
 
