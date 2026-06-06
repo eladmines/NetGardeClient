@@ -14,6 +14,11 @@ from netgarde_wg.gui.settings import log_file, pid_file
 
 def _python_command() -> list[str]:
     if getattr(sys, "frozen", False):
+        from netgarde_wg.platform.bundled import find_sibling_binary
+
+        cli = find_sibling_binary("netgarde-wg")
+        if cli:
+            return [cli]
         return [sys.executable]
     return [sys.executable, "-m", "netgarde_wg"]
 

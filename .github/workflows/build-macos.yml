@@ -2,7 +2,7 @@ name: Build macOS binary
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, feature/macos-menu-bar]
     tags: ["v*"]
   pull_request:
     branches: [main, develop]
@@ -18,19 +18,20 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Build netgarde-wg + wireguard-go
+      - name: Build NetGarde.app + CLI
         run: bash scripts/build-macos.sh
 
-      - name: Smoke test
+      - name: Smoke test CLI
         run: ./dist/netgarde-wg --help
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: netgarde-wg-macos-${{ runner.arch }}
+          name: netgarde-macos-${{ runner.arch }}
           path: |
             dist/netgarde-wg
             dist/wireguard-go
+            dist/NetGarde.app
           if-no-files-found: error
 
       - name: Upload release assets

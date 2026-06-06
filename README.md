@@ -20,33 +20,34 @@ make install
 source .venv/bin/activate
 ```
 
-## macOS menu bar GUI
+## macOS double-click app
+
+Build **`NetGarde.app`** (menu bar, production API built-in):
+
+```bash
+make build-mac
+open dist/NetGarde.app
+```
+
+Copy to Applications for permanent install:
+
+```bash
+cp -R dist/NetGarde.app /Applications/
+```
+
+Double-click **NetGarde** in Applications → **NG** icon in menu bar → **Connect**.
+
+If macOS blocks the first launch: **right-click** `NetGarde.app` → **Open**.
+
+The app bundles `netgarde-wg`, `wireguard-go`, and the menu bar GUI. VPN still prompts for your admin password on Connect.
+
+## macOS menu bar GUI (development)
+
+Run from source without building `.app`:
 
 ```bash
 make install-gui
 make run-gui
-```
-
-1. Click **NG** in the menu bar → **Connect** (uses production API by default)  
-2. Enter your Mac password when prompted (VPN needs admin rights)  
-3. **Disconnect** when done  
-
-Optional: **Settings…** to change API URL, set enroll token, or enable policy CA install.
-
-If your server requires enroll auth, set the token once:
-
-```bash
-export NETGARDE_API_TOKEN=your-ENROLL_BOOTSTRAP_TOKEN
-make run-gui
-```
-
-Or save it in GUI Settings. Tunnel logs: `/tmp/netgarde-wg-<uid>/tunnel.log`.
-
-## macOS standalone binary
-
-```bash
-make build-mac
-sudo ./dist/netgarde-wg
 ```
 
 ## Usage
