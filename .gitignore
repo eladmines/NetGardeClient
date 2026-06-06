@@ -1,0 +1,14 @@
+/netgarde-wg
+bin/
+*.conf
+!client.example.conf
+!server/dnsmasq-wireguard.conf
+.venv/
+.pydeps/
+__pycache__/
+*.egg-info/
+dist/
+build/
+.DS_Store
+client_privatekey
+client_publickey
