@@ -18,6 +18,22 @@ make install
 source .venv/bin/activate
 ```
 
+## macOS menu bar GUI
+
+Install and run the menu bar app (icon in the top-right menu bar):
+
+```bash
+make install-gui
+make run-gui
+# or: netgarde-wg-gui
+```
+
+1. Click **NG** in the menu bar → **Settings…** → enter API URL and token  
+2. **Connect** — macOS prompts for your password (admin rights for VPN)  
+3. **Disconnect** when done  
+
+Settings are stored in `~/Library/Application Support/netgarde/gui-settings.json`.
+
 ## macOS standalone binary
 
 ```bash
