@@ -140,7 +140,7 @@ cd wireguard-go && make && sudo cp wireguard-go /usr/local/bin/
 - `net.ipv4.ip_forward=1`
 - NAT for VPN subnet egress
 - Server peer for client public key; IPs match API / `.conf`
-- **DNS logging:** run dnsmasq on `wg0` — see [`server/README.md`](server/README.md). Clients must use `DNS = 10.0.0.1` (server wg IP), not `172.31.0.2`.
+- **DNS logging:** run dnsmasq on `wg0` on the [NetGarde server](https://github.com/eladmines/NetGarde). Clients must use `DNS = 10.0.0.1` (server wg IP), not `172.31.0.2`.
 
 ## Notes
 

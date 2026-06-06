@@ -2,7 +2,6 @@
 bin/
 *.conf
 !client.example.conf
-!server/dnsmasq-wireguard.conf
 .venv/
 .pydeps/
 __pycache__/
