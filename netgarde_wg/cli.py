@@ -13,6 +13,7 @@ from netgarde_wg.constants import (
     DEFAULT_WINTUN_NAME,
     ENV_API_TOKEN,
     ENV_API_URL,
+    PRODUCTION_API_URL,
 )
 
 
@@ -63,9 +64,10 @@ class CliConfig:
 def usage_text() -> str:
     return f"""usage:
   Offline:  netgarde-wg --config /path/to/client.conf [--no-routing]
-  API:      netgarde-wg --api-url https://api.example.com [--api-token TOKEN] [--state PATH] [--config-out PATH]
+  API:      netgarde-wg [--api-url URL] [--api-token TOKEN] [--state PATH] [--config-out PATH]
 
-  Environment: {ENV_API_URL}, {ENV_API_TOKEN}
+  Default API URL: {PRODUCTION_API_URL}
+  Override via --api-url, {ENV_API_URL}, or GUI Settings
 """
 
 
@@ -77,8 +79,8 @@ def parse_cli(argv: list[str] | None = None) -> CliConfig:
         epilog=usage_text(),
     )
     p.add_argument("--config", default="", help="WireGuard .conf (offline; ignores --api-url)")
-    p.add_argument("--api-url", default=os.environ.get(ENV_API_URL, ""), help="NetGarde API base URL")
-    p.add_argument("--api-token", default=os.environ.get(ENV_API_TOKEN, ""), help="Bearer token")
+    p.add_argument("--api-url", default=os.environ.get(ENV_API_URL, PRODUCTION_API_URL), help="NetGarde API base URL")
+    p.add_argument("--api-token", default=os.environ.get(ENV_API_TOKEN, ""), help="Bearer token (enroll bootstrap)")
     p.add_argument("--api-enroll-path", default=DEFAULT_ENROLL_PATH, help="Enroll path")
     p.add_argument("--state", default="", help="Agent state JSON path")
     p.add_argument("--config-out", default="", help="Write merged .conf after enroll")

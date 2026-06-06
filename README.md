@@ -2,6 +2,8 @@
 
 Python WireGuard client for [NetGarde](https://github.com/eladmines/NetGarde): TUN tunnel, full IPv4 routing, API enroll, macOS DNS apply, and usage reporting.
 
+**Production API (default):** `http://44.218.45.174:8000` — same as the NetGarde dashboard backend. Override with `--api-url`, `NETGARDE_API_URL`, or GUI Settings.
+
 ## Requirements
 
 - Python 3.9+
@@ -20,59 +22,57 @@ source .venv/bin/activate
 
 ## macOS menu bar GUI
 
-Install and run the menu bar app (icon in the top-right menu bar):
-
 ```bash
 make install-gui
 make run-gui
-# or: netgarde-wg-gui
 ```
 
-1. Set **`NETGARDE_API_URL`** (and optionally **`NETGARDE_API_TOKEN`**) in your shell or `~/.zshrc`, **or** use **Settings…** in the menu  
-2. **Connect** — macOS prompts for your password (admin rights for VPN)  
+1. Click **NG** in the menu bar → **Connect** (uses production API by default)  
+2. Enter your Mac password when prompted (VPN needs admin rights)  
 3. **Disconnect** when done  
 
+Optional: **Settings…** to change API URL, set enroll token, or enable policy CA install.
+
+If your server requires enroll auth, set the token once:
+
 ```bash
-export NETGARDE_API_URL=https://api.example.com
-export NETGARDE_API_TOKEN=YOUR_TOKEN   # optional
+export NETGARDE_API_TOKEN=your-ENROLL_BOOTSTRAP_TOKEN
 make run-gui
 ```
 
-Settings file (optional override): `~/Library/Application Support/NetGardeClient/gui-settings.json`. Tunnel logs: `/tmp/netgarde-wg-<uid>/tunnel.log`.
+Or save it in GUI Settings. Tunnel logs: `/tmp/netgarde-wg-<uid>/tunnel.log`.
 
 ## macOS standalone binary
 
 ```bash
 make build-mac
-sudo ./dist/netgarde-wg --api-url https://api.example.com --api-token YOUR_TOKEN
+sudo ./dist/netgarde-wg
 ```
-
-CI builds artifacts on push to `main`/`develop`. Tag `v*` for GitHub Release uploads.
 
 ## Usage
 
-**Offline config:**
+**API enroll (default — production server):**
+
+```bash
+sudo netgarde-wg
+# with enroll bootstrap token (if ENROLL_BOOTSTRAP_TOKEN is set on EC2):
+sudo netgarde-wg --api-token YOUR_TOKEN
+```
+
+**Offline config** (manual WireGuard file, no API):
 
 ```bash
 cp client.example.conf my.conf
 sudo netgarde-wg --config ./my.conf
 ```
 
-**API enroll** (ignores `--config`):
-
-```bash
-export NETGARDE_API_URL=https://api.example.com
-export NETGARDE_API_TOKEN=YOUR_TOKEN   # optional bootstrap token
-sudo netgarde-wg --api-url "$NETGARDE_API_URL" --api-token "$NETGARDE_API_TOKEN"
-```
-
 **macOS policy CA** (one-time, for HTTPS block page):
 
 ```bash
-sudo netgarde-wg --api-url https://api.example.com --api-token TOKEN --install-policy-ca
+sudo netgarde-wg --install-policy-ca
 ```
 
-Set `DNS = 10.0.0.1` (server WireGuard IP) in config or enroll response — not the AWS VPC resolver (`172.31.0.2`).
+WireGuard DNS from enroll should be the server wg IP (e.g. `10.0.0.1`), not the AWS VPC resolver (`172.31.0.2`).
 
 ## Enroll API
 
@@ -85,7 +85,8 @@ Set `DNS = 10.0.0.1` (server WireGuard IP) in config or enroll response — not 
 | Flag | Meaning |
 |------|---------|
 | `--config` | WireGuard `.conf` (offline mode) |
-| `--api-url` | NetGarde API base URL (enroll mode) |
+| `--api-url` | Override production API URL |
+| `--api-token` | Enroll bootstrap token (`ENROLL_BOOTSTRAP_TOKEN` on server) |
 | `--no-routing` | Skip system routes |
 | `--apply-dns` / `--no-apply-dns` | macOS DNS from config (on by default) |
 | `--stats-interval SEC` | Log tunnel traffic every SEC seconds |

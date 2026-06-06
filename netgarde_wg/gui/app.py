@@ -5,6 +5,7 @@ import sys
 import rumps
 
 from netgarde_wg.cli import CliConfig
+from netgarde_wg.constants import PRODUCTION_API_URL
 from netgarde_wg.gui.privileged import is_tunnel_running, start_tunnel, stop_tunnel
 from netgarde_wg.gui.settings import GuiSettings, log_file
 
@@ -33,7 +34,7 @@ class NetGardeMenuBarApp(rumps.App):
         self._refresh_status()
 
     def _refresh_status(self) -> None:
-        self.settings = self.settings.with_env_defaults()
+        self.settings = self.settings.with_defaults()
         if self.settings.api_url:
             self.server_item.title = f"Server: {self.settings.api_url}"
         else:
@@ -59,7 +60,7 @@ class NetGardeMenuBarApp(rumps.App):
 
     @rumps.clicked("Connect")
     def connect(self, _: rumps.MenuItem) -> None:
-        self.settings = self.settings.with_env_defaults()
+        self.settings = self.settings.with_defaults()
         if not self.settings.api_url.strip():
             rumps.alert("NetGarde", self.settings.missing_api_url_message())
             return
@@ -81,9 +82,9 @@ class NetGardeMenuBarApp(rumps.App):
 
     @rumps.clicked("Settings…")
     def settings(self, _: rumps.MenuItem) -> None:
-        effective = self.settings.with_env_defaults()
+        effective = self.settings.with_defaults()
         url_window = rumps.Window(
-            message="NetGarde API base URL (or set NETGARDE_API_URL)",
+            message=f"NetGarde API base URL (default: {PRODUCTION_API_URL})",
             title="Settings",
             default_text=effective.api_url,
             ok="Next",

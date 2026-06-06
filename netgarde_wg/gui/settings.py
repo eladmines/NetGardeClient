@@ -6,7 +6,7 @@ import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-from netgarde_wg.constants import ENV_API_TOKEN, ENV_API_URL
+from netgarde_wg.constants import ENV_API_TOKEN, ENV_API_URL, PRODUCTION_API_URL
 
 
 def _user_data_dir() -> Path:
@@ -54,6 +54,10 @@ class GuiSettings:
         )
 
     @classmethod
+    def production_defaults(cls) -> GuiSettings:
+        return cls(api_url=PRODUCTION_API_URL)
+
+    @classmethod
     def load(cls, path: Path | None = None) -> GuiSettings:
         target = path or settings_path()
         saved = cls()
@@ -67,13 +71,14 @@ class GuiSettings:
                 )
         except (OSError, PermissionError, json.JSONDecodeError):
             pass
-        return saved.with_env_defaults()
+        return saved.with_defaults()
 
-    def with_env_defaults(self) -> GuiSettings:
-        """Use NETGARDE_API_URL / NETGARDE_API_TOKEN when saved fields are empty."""
+    def with_defaults(self) -> GuiSettings:
+        """Saved settings, then env overrides, then production API URL."""
         env = self.from_env()
+        prod = self.production_defaults()
         return GuiSettings(
-            api_url=self.api_url or env.api_url,
+            api_url=self.api_url or env.api_url or prod.api_url,
             api_token=self.api_token or env.api_token,
             install_policy_ca=self.install_policy_ca,
         )
@@ -84,7 +89,4 @@ class GuiSettings:
         target.write_text(json.dumps(asdict(self), indent=2) + "\n", encoding="utf-8")
 
     def missing_api_url_message(self) -> str:
-        return (
-            "No API URL configured. Set NETGARDE_API_URL in your environment "
-            f"(and optionally {ENV_API_TOKEN}), or use Settings…"
-        )
+        return "No API URL configured."
