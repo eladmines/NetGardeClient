@@ -18,9 +18,11 @@ class NetGardeMenuBarApp(rumps.App):
             template=True,
         )
         self.settings = GuiSettings.load()
+        self.server_item = rumps.MenuItem("", callback=None)
         self.status_item = rumps.MenuItem("Status: Disconnected", callback=None)
         self.menu = [
             self.status_item,
+            self.server_item,
             None,
             "Connect",
             "Disconnect",
@@ -31,6 +33,11 @@ class NetGardeMenuBarApp(rumps.App):
         self._refresh_status()
 
     def _refresh_status(self) -> None:
+        self.settings = self.settings.with_env_defaults()
+        if self.settings.api_url:
+            self.server_item.title = f"Server: {self.settings.api_url}"
+        else:
+            self.server_item.title = "Server: (not configured)"
         if is_tunnel_running():
             self.status_item.title = "Status: Connected"
             self.title = "NG ●"
@@ -52,8 +59,9 @@ class NetGardeMenuBarApp(rumps.App):
 
     @rumps.clicked("Connect")
     def connect(self, _: rumps.MenuItem) -> None:
+        self.settings = self.settings.with_env_defaults()
         if not self.settings.api_url.strip():
-            rumps.alert("NetGarde", "Set API URL in Settings before connecting.")
+            rumps.alert("NetGarde", self.settings.missing_api_url_message())
             return
         ok, message = start_tunnel(self._cli_config())
         self._refresh_status()
@@ -73,10 +81,11 @@ class NetGardeMenuBarApp(rumps.App):
 
     @rumps.clicked("Settings…")
     def settings(self, _: rumps.MenuItem) -> None:
+        effective = self.settings.with_env_defaults()
         url_window = rumps.Window(
-            message="NetGarde API base URL",
+            message="NetGarde API base URL (or set NETGARDE_API_URL)",
             title="Settings",
-            default_text=self.settings.api_url,
+            default_text=effective.api_url,
             ok="Next",
             cancel="Cancel",
             dimensions=(420, 24),
@@ -86,9 +95,9 @@ class NetGardeMenuBarApp(rumps.App):
             return
 
         token_window = rumps.Window(
-            message="API token (optional bootstrap token for enroll)",
+            message="API token (optional; or set NETGARDE_API_TOKEN)",
             title="Settings",
-            default_text=self.settings.api_token,
+            default_text=effective.api_token,
             ok="Next",
             cancel="Cancel",
             dimensions=(420, 24),

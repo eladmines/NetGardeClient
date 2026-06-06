@@ -6,6 +6,8 @@ import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
+from netgarde_wg.constants import ENV_API_TOKEN, ENV_API_URL
+
 
 def _user_data_dir() -> Path:
     """User-writable app data (never written by root tunnel process)."""
@@ -45,21 +47,44 @@ class GuiSettings:
     install_policy_ca: bool = False
 
     @classmethod
+    def from_env(cls) -> GuiSettings:
+        return cls(
+            api_url=os.environ.get(ENV_API_URL, "").strip(),
+            api_token=os.environ.get(ENV_API_TOKEN, "").strip(),
+        )
+
+    @classmethod
     def load(cls, path: Path | None = None) -> GuiSettings:
         target = path or settings_path()
+        saved = cls()
         try:
-            if not target.is_file():
-                return cls()
-            data = json.loads(target.read_text(encoding="utf-8"))
+            if target.is_file():
+                data = json.loads(target.read_text(encoding="utf-8"))
+                saved = cls(
+                    api_url=str(data.get("api_url", "")).strip(),
+                    api_token=str(data.get("api_token", "")).strip(),
+                    install_policy_ca=bool(data.get("install_policy_ca", False)),
+                )
         except (OSError, PermissionError, json.JSONDecodeError):
-            return cls()
-        return cls(
-            api_url=str(data.get("api_url", "")).strip(),
-            api_token=str(data.get("api_token", "")).strip(),
-            install_policy_ca=bool(data.get("install_policy_ca", False)),
+            pass
+        return saved.with_env_defaults()
+
+    def with_env_defaults(self) -> GuiSettings:
+        """Use NETGARDE_API_URL / NETGARDE_API_TOKEN when saved fields are empty."""
+        env = self.from_env()
+        return GuiSettings(
+            api_url=self.api_url or env.api_url,
+            api_token=self.api_token or env.api_token,
+            install_policy_ca=self.install_policy_ca,
         )
 
     def save(self, path: Path | None = None) -> None:
         target = path or settings_path()
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(json.dumps(asdict(self), indent=2) + "\n", encoding="utf-8")
+
+    def missing_api_url_message(self) -> str:
+        return (
+            "No API URL configured. Set NETGARDE_API_URL in your environment "
+            f"(and optionally {ENV_API_TOKEN}), or use Settings…"
+        )

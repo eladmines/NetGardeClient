@@ -28,11 +28,17 @@ make run-gui
 # or: netgarde-wg-gui
 ```
 
-1. Click **NG** in the menu bar → **Settings…** → enter API URL and token  
+1. Set **`NETGARDE_API_URL`** (and optionally **`NETGARDE_API_TOKEN`**) in your shell or `~/.zshrc`, **or** use **Settings…** in the menu  
 2. **Connect** — macOS prompts for your password (admin rights for VPN)  
 3. **Disconnect** when done  
 
-Settings are stored in `~/Library/Application Support/NetGardeClient/gui-settings.json`. Tunnel logs: `/tmp/netgarde-wg-<uid>/tunnel.log`.
+```bash
+export NETGARDE_API_URL=https://api.example.com
+export NETGARDE_API_TOKEN=YOUR_TOKEN   # optional
+make run-gui
+```
+
+Settings file (optional override): `~/Library/Application Support/NetGardeClient/gui-settings.json`. Tunnel logs: `/tmp/netgarde-wg-<uid>/tunnel.log`.
 
 ## macOS standalone binary
 
