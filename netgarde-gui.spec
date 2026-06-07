@@ -10,13 +10,15 @@ hiddenimports = [
     "objc",
     "Foundation",
     "AppKit",
+    "netgarde_wg.gui.connection_panel",
+    "netgarde_wg.gui.icons",
 ]
 
 a = Analysis(
     ["netgarde_wg/gui/app.py"],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[("netgarde_wg/gui/assets", "netgarde_wg/gui/assets")],
     hiddenimports=hiddenimports,
     hookspath=[],
     hooksconfig={},

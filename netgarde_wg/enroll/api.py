@@ -96,8 +96,6 @@ class Client:
             return {"Authorization": f"Bearer {self.device_token}"}
         if self.enroll_token:
             return {"Authorization": f"Bearer {self.enroll_token}"}
-        if not for_usage and self.device_token:
-            return {"Authorization": f"Bearer {self.device_token}"}
         return {}
 
     def report_usage(

@@ -29,8 +29,15 @@ def start_traffic_monitor(
     if interval <= 0:
         return None
 
+    usage_enabled = bool(api_client and device_id and api_client.device_token)
+    if api_client and device_id and not api_client.device_token:
+        log.warning(
+            "usage reports skipped: missing device_token; reconnect so enroll can save one"
+        )
+
     def _loop() -> None:
         last: TransferStats | None = None
+        usage_warned = False
         stats_path = opts.stats_file.strip()
         fp = None
         if stats_path:
@@ -77,7 +84,7 @@ def start_traffic_monitor(
                     if fp:
                         fp.write(json.dumps(record) + "\n")
                         fp.flush()
-                    if api_client and device_id:
+                    if usage_enabled:
                         try:
                             api_client.report_usage(
                                 device_id=device_id,
@@ -89,6 +96,11 @@ def start_traffic_monitor(
                             )
                         except Exception as e:
                             log.warning("usage report: %s", e)
+                    elif api_client and device_id and not usage_warned:
+                        log.warning(
+                            "usage report skipped: no device_token (dashboard bandwidth will stay empty)"
+                        )
+                        usage_warned = True
                 last = cur
         finally:
             if fp:
@@ -96,5 +108,13 @@ def start_traffic_monitor(
 
     thread = threading.Thread(target=_loop, name="netgarde-traffic", daemon=True)
     thread.start()
-    log.info("traffic monitor every %.0fs (down=received, up=sent)", interval)
+    if usage_enabled:
+        log.info(
+            "traffic monitor every %.0fs (usage -> %s%s)",
+            interval,
+            api_client.base_url,
+            api_client.usage_path,
+        )
+    else:
+        log.info("traffic monitor every %.0fs (down=received, up=sent)", interval)
     return thread

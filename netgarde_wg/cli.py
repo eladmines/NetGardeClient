@@ -9,12 +9,14 @@ from pathlib import Path
 from netgarde_wg.constants import (
     DEFAULT_ENROLL_PATH,
     DEFAULT_POLICY_CA_PATH,
+    DEFAULT_STATS_INTERVAL,
     DEFAULT_USAGE_PATH,
     DEFAULT_WINTUN_NAME,
     ENV_API_TOKEN,
     ENV_API_URL,
     PRODUCTION_API_URL,
 )
+from netgarde_wg.paths import agent_state_path
 
 
 @dataclass
@@ -42,12 +44,8 @@ class CliConfig:
             appdata = os.environ.get("APPDATA")
             if appdata:
                 return str(Path(appdata) / "netgarde" / "agent-state.json")
-        try:
-            base = Path(os.path.expanduser("~")) / "Library" / "Application Support"
-            if sys.platform == "darwin":
-                return str(base / "netgarde" / "agent-state.json")
-        except OSError:
-            pass
+        if sys.platform == "darwin":
+            return str(agent_state_path())
         if sys.platform.startswith("linux"):
             xdg = os.environ.get("XDG_CONFIG_HOME")
             if xdg:
@@ -111,7 +109,10 @@ def parse_cli(argv: list[str] | None = None) -> CliConfig:
         type=float,
         default=0.0,
         metavar="SEC",
-        help="Log WireGuard traffic every SEC seconds (MiB down/up; 0=off)",
+        help=(
+            f"Report tunnel traffic every SEC seconds to {DEFAULT_USAGE_PATH} when using "
+            f"--api-url (default {DEFAULT_STATS_INTERVAL:g}s; use 0 to disable)"
+        ),
     )
     p.add_argument(
         "--stats-file",
@@ -135,6 +136,9 @@ def parse_cli(argv: list[str] | None = None) -> CliConfig:
     )
 
     args = p.parse_args(argv)
+    stats_interval = max(0.0, float(args.stats_interval))
+    if stats_interval == 0.0 and args.api_url.strip() and not args.config.strip():
+        stats_interval = DEFAULT_STATS_INTERVAL
     return CliConfig(
         config_path=args.config,
         api_url=args.api_url,
@@ -146,7 +150,7 @@ def parse_cli(argv: list[str] | None = None) -> CliConfig:
         no_routing=args.no_routing,
         apply_dns=args.apply_dns,
         dns_service=args.dns_service,
-        stats_interval=max(0.0, float(args.stats_interval)),
+        stats_interval=stats_interval,
         stats_file=args.stats_file,
         api_usage_path=args.api_usage_path,
         api_policy_ca_path=args.api_policy_ca_path,

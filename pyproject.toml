@@ -25,4 +25,4 @@ where = ["."]
 include = ["netgarde_wg*"]
 
 [tool.setuptools.package-data]
-netgarde_wg = ["py.typed"]
+netgarde_wg = ["py.typed", "gui/assets/*.png"]

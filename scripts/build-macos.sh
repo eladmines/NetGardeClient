@@ -25,6 +25,9 @@ fi
 "$PIP" install -U pip
 "$PIP" install ".[dev,gui]"
 
+echo "Generating menu bar icons..."
+"$PY" -c "from pathlib import Path; from netgarde_wg.gui.icons import _draw_icon, _write_png; d=Path('netgarde_wg/gui/assets'); d.mkdir(parents=True, exist_ok=True); _write_png(_draw_icon(connected=False), d/'menubar-disconnected.png'); _write_png(_draw_icon(connected=True), d/'menubar-connected.png')"
+
 mkdir -p "$BIN" "$DIST"
 
 WG_GO="$BIN/wireguard-go"

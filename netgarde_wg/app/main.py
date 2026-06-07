@@ -12,7 +12,6 @@ from netgarde_wg.cli import CliConfig, parse_cli, usage_text
 from netgarde_wg.constants import CACHED_WG_CONF_PERM
 from netgarde_wg.enroll.api import Client, EnrollRequest, wireguard_from_enroll
 from netgarde_wg.enroll.public_ip import fetch_public_ipv4
-from netgarde_wg.platform.hostmeta import first_physical_mac
 from netgarde_wg.wireguard.config import load_config, render_wireguard_conf
 from netgarde_wg.platform.trust_ca import install_policy_ca_if_requested
 from netgarde_wg.wireguard.tunnel import normalize_endpoint, run_tunnel
@@ -50,7 +49,6 @@ def resolve_wireguard_config(opts: CliConfig):
                 device_id=st.device_id,
                 public_key=pub,
                 hostname=host.strip(),
-                mac_address=first_physical_mac(),
                 client_public_ip=public_ip,
             )
         )
@@ -105,6 +103,18 @@ def run(opts: CliConfig) -> None:
             usage_path=opts.api_usage_path,
             policy_ca_path=opts.api_policy_ca_path,
         )
+        if opts.stats_interval > 0 and not st.device_token.strip():
+            log.warning(
+                "usage reporting disabled: no device_token in state (enroll first); "
+                "dashboard live bandwidth will stay empty"
+            )
+        elif opts.stats_interval > 0:
+            log.info(
+                "usage reports every %.0fs to %s%s",
+                opts.stats_interval,
+                opts.api_url.rstrip("/"),
+                opts.api_usage_path,
+            )
     install_policy_ca_if_requested(opts, api_client)
     run_tunnel(
         cfg,
