@@ -30,18 +30,25 @@ echo "Generating menu bar icons..."
 
 mkdir -p "$BIN" "$DIST"
 
+mkdir -p "$BIN" "$DIST"
+
 WG_GO="$BIN/wireguard-go"
 if [[ ! -x "$WG_GO" ]]; then
-  if ! command -v go >/dev/null 2>&1; then
-    echo "error: go is required to build wireguard-go (install Go or set PATH)" >&2
+  if command -v wireguard-go >/dev/null 2>&1; then
+    echo "Using wireguard-go from PATH -> $WG_GO"
+    cp "$(command -v wireguard-go)" "$WG_GO"
+  elif command -v brew >/dev/null 2>&1; then
+    echo "Installing wireguard-go via Homebrew (prebuilt bottle) ..."
+    brew install wireguard-go
+    if [[ -x "$(brew --prefix wireguard-go)/bin/wireguard-go" ]]; then
+      cp "$(brew --prefix wireguard-go)/bin/wireguard-go" "$WG_GO"
+    else
+      cp "$(command -v wireguard-go)" "$WG_GO"
+    fi
+  else
+    echo "error: wireguard-go is required. Install with: brew install wireguard-go" >&2
     exit 1
   fi
-  echo "Building wireguard-go into $WG_GO ..."
-  TMP="$(mktemp -d)"
-  git clone --depth 1 https://git.zx2c4.com/wireguard-go "$TMP/wireguard-go"
-  make -C "$TMP/wireguard-go"
-  cp "$TMP/wireguard-go/wireguard-go" "$WG_GO"
-  rm -rf "$TMP"
 fi
 
 rm -rf build dist
