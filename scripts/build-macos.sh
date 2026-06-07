@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build netgarde-wg macOS binary (PyInstaller) and bundle wireguard-go.
+# Build netgarde-wg CLI, NetGarde.app (menu bar), and bundle wireguard-go.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -10,6 +10,8 @@ PY="$VENV/bin/python"
 PIP="$VENV/bin/pip"
 DIST="$ROOT/dist"
 BIN="$ROOT/bin"
+APP="$DIST/NetGarde.app"
+APP_MACOS="$APP/Contents/MacOS"
 
 if [[ "$(uname -s)" != "Darwin" ]]; then
   echo "error: macOS build must run on Darwin (use GitHub Actions on macos-latest otherwise)" >&2
@@ -21,7 +23,10 @@ if [[ ! -x "$PY" ]]; then
 fi
 
 "$PIP" install -U pip
-"$PIP" install ".[dev]"
+"$PIP" install ".[dev,gui]"
+
+echo "Generating menu bar icons..."
+"$PY" -c "from pathlib import Path; from netgarde_wg.gui.icons import _draw_icon, _write_png; d=Path('netgarde_wg/gui/assets'); d.mkdir(parents=True, exist_ok=True); _write_png(_draw_icon(connected=False), d/'menubar-disconnected.png'); _write_png(_draw_icon(connected=True), d/'menubar-connected.png')"
 
 mkdir -p "$BIN" "$DIST"
 
@@ -36,14 +41,28 @@ if [[ ! -x "$WG_GO" ]]; then
 fi
 
 rm -rf build dist
+mkdir -p "$DIST"
+
+echo "Building CLI binary..."
 "$PY" -m PyInstaller --noconfirm netgarde-wg.spec
+
+echo "Building NetGarde.app..."
+"$PY" -m PyInstaller --noconfirm netgarde-gui.spec
+
 cp "$WG_GO" "$DIST/wireguard-go"
-chmod +x "$DIST/netgarde-wg" "$DIST/wireguard-go"
+cp "$DIST/netgarde-wg" "$APP_MACOS/netgarde-wg"
+cp "$WG_GO" "$APP_MACOS/wireguard-go"
+chmod +x "$DIST/netgarde-wg" "$DIST/wireguard-go" "$APP_MACOS/netgarde-wg" "$APP_MACOS/wireguard-go"
 
 echo ""
 echo "Built:"
 echo "  $DIST/netgarde-wg"
 echo "  $DIST/wireguard-go"
+echo "  $APP"
 echo ""
-echo "Run (needs sudo for TUN/routes):"
-echo "  sudo $DIST/netgarde-wg --help"
+echo "Double-click: open $APP"
+echo "Or copy to Applications:"
+echo "  cp -R $APP /Applications/"
+echo ""
+echo "First launch: if macOS blocks the app, right-click NetGarde.app → Open."
+echo "Connect from the NG menu bar icon (admin password required for VPN)."

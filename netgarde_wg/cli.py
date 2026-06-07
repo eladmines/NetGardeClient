@@ -9,11 +9,14 @@ from pathlib import Path
 from netgarde_wg.constants import (
     DEFAULT_ENROLL_PATH,
     DEFAULT_POLICY_CA_PATH,
+    DEFAULT_STATS_INTERVAL,
     DEFAULT_USAGE_PATH,
     DEFAULT_WINTUN_NAME,
     ENV_API_TOKEN,
     ENV_API_URL,
+    PRODUCTION_API_URL,
 )
+from netgarde_wg.paths import agent_state_path
 
 
 @dataclass
@@ -41,12 +44,8 @@ class CliConfig:
             appdata = os.environ.get("APPDATA")
             if appdata:
                 return str(Path(appdata) / "netgarde" / "agent-state.json")
-        try:
-            base = Path(os.path.expanduser("~")) / "Library" / "Application Support"
-            if sys.platform == "darwin":
-                return str(base / "netgarde" / "agent-state.json")
-        except OSError:
-            pass
+        if sys.platform == "darwin":
+            return str(agent_state_path())
         if sys.platform.startswith("linux"):
             xdg = os.environ.get("XDG_CONFIG_HOME")
             if xdg:
@@ -63,9 +62,10 @@ class CliConfig:
 def usage_text() -> str:
     return f"""usage:
   Offline:  netgarde-wg --config /path/to/client.conf [--no-routing]
-  API:      netgarde-wg --api-url https://api.example.com [--api-token TOKEN] [--state PATH] [--config-out PATH]
+  API:      netgarde-wg [--api-url URL] [--api-token TOKEN] [--state PATH] [--config-out PATH]
 
-  Environment: {ENV_API_URL}, {ENV_API_TOKEN}
+  Default API URL: {PRODUCTION_API_URL}
+  Override via --api-url, {ENV_API_URL}, or GUI Settings
 """
 
 
@@ -77,8 +77,8 @@ def parse_cli(argv: list[str] | None = None) -> CliConfig:
         epilog=usage_text(),
     )
     p.add_argument("--config", default="", help="WireGuard .conf (offline; ignores --api-url)")
-    p.add_argument("--api-url", default=os.environ.get(ENV_API_URL, ""), help="NetGarde API base URL")
-    p.add_argument("--api-token", default=os.environ.get(ENV_API_TOKEN, ""), help="Bearer token")
+    p.add_argument("--api-url", default=os.environ.get(ENV_API_URL, PRODUCTION_API_URL), help="NetGarde API base URL")
+    p.add_argument("--api-token", default=os.environ.get(ENV_API_TOKEN, ""), help="Bearer token (enroll bootstrap)")
     p.add_argument("--api-enroll-path", default=DEFAULT_ENROLL_PATH, help="Enroll path")
     p.add_argument("--state", default="", help="Agent state JSON path")
     p.add_argument("--config-out", default="", help="Write merged .conf after enroll")
@@ -109,7 +109,10 @@ def parse_cli(argv: list[str] | None = None) -> CliConfig:
         type=float,
         default=0.0,
         metavar="SEC",
-        help="Log WireGuard traffic every SEC seconds (MiB down/up; 0=off)",
+        help=(
+            f"Report tunnel traffic every SEC seconds to {DEFAULT_USAGE_PATH} when using "
+            f"--api-url (default {DEFAULT_STATS_INTERVAL:g}s; use 0 to disable)"
+        ),
     )
     p.add_argument(
         "--stats-file",
@@ -133,6 +136,9 @@ def parse_cli(argv: list[str] | None = None) -> CliConfig:
     )
 
     args = p.parse_args(argv)
+    stats_interval = max(0.0, float(args.stats_interval))
+    if stats_interval == 0.0 and args.api_url.strip() and not args.config.strip():
+        stats_interval = DEFAULT_STATS_INTERVAL
     return CliConfig(
         config_path=args.config,
         api_url=args.api_url,
@@ -144,7 +150,7 @@ def parse_cli(argv: list[str] | None = None) -> CliConfig:
         no_routing=args.no_routing,
         apply_dns=args.apply_dns,
         dns_service=args.dns_service,
-        stats_interval=max(0.0, float(args.stats_interval)),
+        stats_interval=stats_interval,
         stats_file=args.stats_file,
         api_usage_path=args.api_usage_path,
         api_policy_ca_path=args.api_policy_ca_path,

@@ -14,13 +14,15 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pyinstaller>=6.0.0"]
+gui = ["rumps>=0.4.0; sys_platform == 'darwin'"]
 
 [project.scripts]
 netgarde-wg = "netgarde_wg.__main__:main"
+netgarde-wg-gui = "netgarde_wg.gui.app:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["netgarde_wg*"]
 
 [tool.setuptools.package-data]
-netgarde_wg = ["py.typed"]
+netgarde_wg = ["py.typed", "gui/assets/*.png"]
