@@ -32,6 +32,10 @@ mkdir -p "$BIN" "$DIST"
 
 WG_GO="$BIN/wireguard-go"
 if [[ ! -x "$WG_GO" ]]; then
+  if ! command -v go >/dev/null 2>&1; then
+    echo "error: go is required to build wireguard-go (install Go or set PATH)" >&2
+    exit 1
+  fi
   echo "Building wireguard-go into $WG_GO ..."
   TMP="$(mktemp -d)"
   git clone --depth 1 https://git.zx2c4.com/wireguard-go "$TMP/wireguard-go"

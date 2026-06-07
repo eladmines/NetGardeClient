@@ -18,6 +18,10 @@ jobs:
         with:
           python-version: "3.11"
 
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
       - name: Build NetGarde.app + CLI
         run: bash scripts/build-macos.sh
 
