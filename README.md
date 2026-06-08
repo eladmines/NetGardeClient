@@ -1,26 +1,26 @@
 <p align="center">
-  <strong>NetGardeClient</strong><br/>
-  macOS WireGuard client &amp; menu bar app for the NetGarde zero-trust platform
+  <strong>TrustEdgeClient</strong><br/>
+  macOS WireGuard client &amp; menu bar app for the TrustEdge zero-trust platform
 </p>
 
 <p align="center">
-  <a href="https://github.com/NetGarde">Organization</a> ·
-  <a href="https://github.com/NetGarde/NetGarde">Platform</a> ·
-  <a href="https://github.com/NetGarde/NetGardeClient">Client</a>
+  <a href="https://github.com/TrustEdge">Organization</a> ·
+  <a href="https://github.com/TrustEdge/TrustEdge">Platform</a> ·
+  <a href="https://github.com/TrustEdge/TrustEdgeClient">Client</a>
 </p>
 
 ---
 
 ## About
 
-**NetGardeClient** is the device-side companion to [NetGarde](https://github.com/NetGarde/NetGarde) — a self-hosted network security platform I built end to end (control plane, dashboard, policy engine, and AWS deployment).
+**TrustEdgeClient** is the device-side companion to [TrustEdge](https://github.com/TrustEdge/TrustEdge) — a self-hosted network security platform I built end to end (control plane, dashboard, policy engine, and AWS deployment).
 
 This repo is the **secure access layer**: enroll a device, establish a WireGuard tunnel, route DNS through the platform gateway, and report live usage back to the admin dashboard.
 
 **Deliverables**
 
-- **`NetGarde.app`** — native macOS menu bar application  
-- **`netgarde-wg`** — cross-platform CLI for Linux and Windows  
+- **`TrustEdge.app`** — native macOS menu bar application  
+- **`trustedge-wg`** — cross-platform CLI for Linux and Windows  
 - **Packaged build pipeline** — PyInstaller bundle + GitHub Actions  
 
 ---
@@ -28,7 +28,7 @@ This repo is the **secure access layer**: enroll a device, establish a WireGuard
 ## Screenshots
 
 <p align="center">
-  <img src="docs/images/connection-panel-connected.png" alt="NetGarde connection panel — connected state with live traffic" width="420" />
+  <img src="docs/images/connection-panel-connected.png" alt="TrustEdge connection panel — connected state with live traffic" width="420" />
 </p>
 
 <p align="center"><em>Connection panel — status, session details, live traffic, connect / disconnect</em></p>
@@ -70,7 +70,7 @@ While connected, the client reports tunnel usage to the dashboard so operators s
 sequenceDiagram
     autonumber
     actor User
-    participant Client as NetGardeClient
+    participant Client as TrustEdgeClient
     participant API as Control plane
     participant GW as WireGuard gateway
     participant Dash as Dashboard
@@ -92,12 +92,12 @@ sequenceDiagram
 
 ---
 
-## How it fits in NetGarde
+## How it fits in TrustEdge
 
 ```
-  Laptop / phone                    NetGarde platform
+  Laptop / phone                    TrustEdge platform
   ─────────────                     ─────────────────
-  NetGardeClient  ── enroll ──►     API + device identity
+  TrustEdgeClient  ── enroll ──►     API + device identity
         │                           WireGuard gateway
         ├── tunnel + DNS ──►        DNS policy (dnsmasq)
         └── usage stats ──►         Live dashboard charts
@@ -111,7 +111,7 @@ Policy, blocking, quarantine, and monitoring live on the **server**. The client 
 
 Python · WireGuard · wireguard-go · rumps · AppKit · PyInstaller · GitHub Actions
 
-Backend & dashboard: [NetGarde platform →](https://github.com/NetGarde/NetGarde)
+Backend & dashboard: [TrustEdge platform →](https://github.com/TrustEdge/TrustEdge)
 
 ---
 
@@ -119,8 +119,8 @@ Backend & dashboard: [NetGarde platform →](https://github.com/NetGarde/NetGard
 
 | | |
 |---|---|
-| [NetGarde](https://github.com/NetGarde/NetGarde) | Platform — FastAPI, React, DNS policy, behavior analytics, AWS |
-| [NetGarde org](https://github.com/NetGarde) | Project home |
+| [TrustEdge](https://github.com/TrustEdge/TrustEdge) | Platform — FastAPI, React, DNS policy, behavior analytics, AWS |
+| [TrustEdge org](https://github.com/TrustEdge) | Project home |
 
 ---
 

@@ -1,4 +1,4 @@
-/netgarde-wg
+/trustedge-wg
 bin/
 *.conf
 !client.example.conf

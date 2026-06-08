@@ -1,0 +1,22 @@
+import os
+
+ENV_API_URL = "TRUSTEDGE_API_URL"
+ENV_API_TOKEN = "TRUSTEDGE_API_TOKEN"
+
+# TrustEdge production API (same as frontend REACT_APP_API_BASE_URL / deploy-frontend.yml)
+PRODUCTION_API_URL = "http://44.218.45.174:8000"
+
+DEFAULT_ENROLL_PATH = "/v1/enroll"
+DEFAULT_USAGE_PATH = "/v1/usage"
+# POST /v1/usage every N seconds for dashboard Live network graph (0 = off)
+DEFAULT_STATS_INTERVAL = 5.0
+DEFAULT_POLICY_CA_PATH = "/policy/block-page-ca"
+DEFAULT_WINTUN_NAME = "TrustEdge"
+DEFAULT_WIREGUARD_PORT = "51820"
+DEFAULT_MTU = 1420
+
+MAX_ENROLL_RESPONSE_BYTES = 1 << 20
+HTTP_CLIENT_TIMEOUT = 60
+
+STATE_FILE_PERM = 0o600
+CACHED_WG_CONF_PERM = 0o600

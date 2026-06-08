@@ -6,11 +6,11 @@ PIP ?= $(VENV)/bin/pip
 
 help:
 	@echo "Targets:"
-	@echo "  make install        Create venv and install netgarde-wg (Python)"
+	@echo "  make install        Create venv and install trustedge-wg (Python)"
 	@echo "  make install-gui    Install with macOS menu bar GUI (rumps)"
 	@echo "  make run ARGS='...' Run CLI via Python (usually needs sudo)"
 	@echo "  make run-gui        Launch menu bar app (dev, via Python)"
-	@echo "  make build-mac      Build dist/netgarde-wg + dist/NetGarde.app"
+	@echo "  make build-mac      Build dist/trustedge-wg + dist/TrustEdge.app"
 	@echo "  make build-mac-app  Alias for build-mac"
 
 install:
@@ -22,10 +22,10 @@ install-gui: install
 	$(PIP) install ".[gui]"
 
 run: install
-	sudo $(PY) -m netgarde_wg $(ARGS)
+	sudo $(PY) -m trustedge_wg $(ARGS)
 
 run-gui: install-gui
-	$(PY) -m netgarde_wg.gui.app
+	$(PY) -m trustedge_wg.gui.app
 
 build-mac:
 	bash scripts/build-macos.sh
