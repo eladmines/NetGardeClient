@@ -1,173 +1,127 @@
-# NetGardeClient
+<p align="center">
+  <strong>NetGardeClient</strong><br/>
+  macOS WireGuard client &amp; menu bar app for the NetGarde zero-trust platform
+</p>
 
-**macOS WireGuard VPN client** for the [NetGarde](https://github.com/NetGarde) platform — API enrollment, TUN tunnel, DNS routing, usage reporting, and a menu bar app.
-
-**Organization:** [github.com/NetGarde](https://github.com/NetGarde) · **Platform:** [NetGarde](https://github.com/NetGarde/NetGarde) · **Client:** [NetGardeClient](https://github.com/NetGarde/NetGardeClient)
-
----
-
-## Overview
-
-NetGardeClient connects enrolled devices to the NetGarde control plane over **WireGuard**. It handles device identity at enroll time, applies server-assigned DNS policy routing, and reports tunnel usage back to the platform API.
-
-The macOS build ships as **`NetGarde.app`** — a menu bar app with connect/disconnect, live traffic stats, and a connection details panel. A cross-platform **CLI** (`netgarde-wg`) is also available for Linux and Windows.
-
-**Production API (default):** `http://44.218.45.174:8000` — same backend as the NetGarde dashboard. Override with `--api-url`, `NETGARDE_API_URL`, or GUI settings.
+<p align="center">
+  <a href="https://github.com/NetGarde">Organization</a> ·
+  <a href="https://github.com/NetGarde/NetGarde">Platform</a> ·
+  <a href="https://github.com/NetGarde/NetGardeClient">Client</a>
+</p>
 
 ---
 
-## Features
+## About
 
-| Capability | Implementation |
-|------------|----------------|
-| Secure enroll | `POST /v1/enroll` with device identity + WireGuard key exchange |
-| Tunnel | `wireguard-go` (macOS/Windows) or kernel WireGuard (Linux) |
-| DNS policy | Applies WireGuard DNS from server config (macOS system DNS) |
-| Usage reporting | Periodic `POST /v1/usage` for live dashboard charts |
-| macOS GUI | Menu bar app (PyInstaller), shield status icons, connection panel |
-| Offline mode | Manual `.conf` file without API enroll |
+**NetGardeClient** is the device-side companion to [NetGarde](https://github.com/NetGarde/NetGarde) — a self-hosted network security platform I built end to end (control plane, dashboard, policy engine, and AWS deployment).
+
+This repo is the **secure access layer**: enroll a device, establish a WireGuard tunnel, route DNS through the platform gateway, and report live usage back to the admin dashboard.
+
+**Deliverables**
+
+- **`NetGarde.app`** — native macOS menu bar application  
+- **`netgarde-wg`** — cross-platform CLI for Linux and Windows  
+- **Packaged build pipeline** — PyInstaller bundle + GitHub Actions  
 
 ---
 
 ## Screenshots
 
-> Replace `docs/images/connection-panel-connected.png` with a redacted copy (blur VPN/DNS IPs) before publishing if needed. See [docs/images/README.md](docs/images/README.md).
+<p align="center">
+  <img src="docs/images/connection-panel-connected.png" alt="NetGarde connection panel — connected state with live traffic" width="420" />
+</p>
 
-### macOS connection panel
-
-![Connected — live stats, VPN details, and disconnect](docs/images/connection-panel-connected.png)
-
----
-
-## Requirements
-
-- Python 3.9+
-- macOS, Linux, or Windows
-- Elevated privileges (`sudo` on macOS/Linux; Administrator on Windows)
-- Tunnel backend: `wireguard-go` on macOS/Windows, or `wg` + kernel WireGuard on Linux
+<p align="center"><em>Connection panel — status, session details, live traffic, connect / disconnect</em></p>
 
 ---
 
-## Quick start
+## What this project shows
 
-```bash
-git clone https://github.com/NetGarde/NetGardeClient.git
-cd NetGardeClient
-make install
-source .venv/bin/activate
-```
-
-**CLI enroll (production server):**
-
-```bash
-sudo netgarde-wg
-# with enroll bootstrap token (if ENROLL_BOOTSTRAP_TOKEN is set on the server):
-sudo netgarde-wg --api-token YOUR_TOKEN
-```
+| | |
+|---|---|
+| **Network security** | WireGuard VPN, device enrollment, DNS policy path through the gateway |
+| **Systems engineering** | TUN interfaces, routing, privileged macOS DNS and tunnel lifecycle |
+| **Product engineering** | Menu bar UX, connection panel, session handling, orphan cleanup |
+| **Full-stack integration** | Client ↔ control plane ↔ live dashboard telemetry |
+| **Shipping software** | PyInstaller macOS app, CI build, installable `.app` bundle |
 
 ---
 
-## macOS app
+## How secure connect works
 
-Build **`NetGarde.app`** (menu bar, production API built-in):
+When the user clicks **Connect**, the client runs a zero-trust enrollment flow — no pre-shared WireGuard config file required.
 
-```bash
-make build-mac
-open dist/NetGarde.app
+**1. Device identity & keys**  
+The client generates a **WireGuard key pair**. The **private key never leaves the device**. Only the **public key** is sent to the platform, together with a stable device identity (hostname, hardware id).
+
+**2. Enrollment**  
+The control plane validates the request, registers the device, assigns a VPN address from its pool, and tells the gateway to accept this peer.
+
+**3. Tunnel configuration**  
+The server returns everything the client needs: server public key, tunnel address, DNS gateway, and routing rules. The client builds the WireGuard session locally.
+
+**4. Connect**  
+The tunnel comes up (TUN interface + routes). DNS is pointed at the platform gateway so **policy applies to all lookups** — not just browser traffic.
+
+**5. Live visibility**  
+While connected, the client reports tunnel usage to the dashboard so operators see **live bandwidth** per device.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User
+    participant Client as NetGardeClient
+    participant API as Control plane
+    participant GW as WireGuard gateway
+    participant Dash as Dashboard
+
+    User->>Client: Connect
+    Client->>Client: Generate key pair (private key stays local)
+    Client->>API: Enroll device identity + public key
+    API->>API: Register device, assign VPN address
+    API->>GW: Authorize peer on gateway
+    API-->>Client: Server public key, tunnel config, DNS
+    Client->>Client: WireGuard tunnel + system DNS
+    loop While connected
+        Client->>API: Tunnel usage telemetry
+        API->>Dash: Live bandwidth per device
+    end
 ```
 
-Install permanently:
-
-```bash
-cp -R dist/NetGarde.app /Applications/
-```
-
-Double-click **NetGarde** in Applications → shield icon in menu bar → **Connect**.
-
-If macOS blocks the first launch: **right-click** `NetGarde.app` → **Open**.
-
-The app bundles `netgarde-wg`, `wireguard-go`, and the menu bar GUI. VPN still prompts for your admin password on Connect.
-
-**Development (without building `.app`):**
-
-```bash
-make install-gui
-make run-gui
-```
+> **Why this matters:** identity is established *before* access is granted; keys are asymmetric (no shared secret on the wire); policy enforcement stays on the infrastructure you control — the same principles as enterprise ZTNA, in a project you can demo end to end.
 
 ---
 
-## Enroll flow
+## How it fits in NetGarde
 
 ```
-NetGardeClient → POST /v1/enroll → NetGarde API → device + IP allocation
-              → wg-agent apply-peer → WireGuard config returned to client
-              → tunnel up → DNS via server → usage POST /v1/usage
+  Laptop / phone                    NetGarde platform
+  ─────────────                     ─────────────────
+  NetGardeClient  ── enroll ──►     API + device identity
+        │                           WireGuard gateway
+        ├── tunnel + DNS ──►        DNS policy (dnsmasq)
+        └── usage stats ──►         Live dashboard charts
 ```
 
-**Enroll API**
-
-- `POST {api-url}/v1/enroll` (override path with `--api-enroll-path`)
-- Body: `device_id`, `public_key`, optional `hostname`, `mac_address`
-- Response: WireGuard config fields or `wireguard_conf` INI, plus `device_token` for `/v1/usage`
-
-WireGuard DNS from enroll should be the server wg IP (e.g. `10.0.0.1`), not the AWS VPC resolver (`172.31.0.2`).
+Policy, blocking, quarantine, and monitoring live on the **server**. The client focuses on **connectivity and visibility** — the same split you see in enterprise ZTNA / SASE products.
 
 ---
 
-## Common flags
+## Built with
 
-| Flag | Meaning |
-|------|---------|
-| `--config` | WireGuard `.conf` (offline mode) |
-| `--api-url` | Override production API URL |
-| `--api-token` | Enroll bootstrap token (`ENROLL_BOOTSTRAP_TOKEN` on server) |
-| `--no-routing` | Skip system routes |
-| `--apply-dns` / `--no-apply-dns` | macOS DNS from config (on by default) |
-| `--stats-interval SEC` | Report tunnel traffic every SEC seconds |
-| `--install-policy-ca` | macOS: trust block-page CA from API |
+Python · WireGuard · wireguard-go · rumps · AppKit · PyInstaller · GitHub Actions
 
-Run `netgarde-wg --help` for all options.
-
-**Offline config:**
-
-```bash
-cp client.example.conf my.conf
-sudo netgarde-wg --config ./my.conf
-```
-
-**macOS policy CA** (one-time, for HTTPS block page):
-
-```bash
-sudo netgarde-wg --install-policy-ca
-```
+Backend & dashboard: [NetGarde platform →](https://github.com/NetGarde/NetGarde)
 
 ---
 
-## macOS: wireguard-go
+## Explore
 
-Bundled automatically by `make build-mac`, or install manually:
-
-```bash
-git clone https://git.zx2c4.com/wireguard-go
-cd wireguard-go && make && sudo cp wireguard-go /usr/local/bin/
-```
+| | |
+|---|---|
+| [NetGarde](https://github.com/NetGarde/NetGarde) | Platform — FastAPI, React, DNS policy, behavior analytics, AWS |
+| [NetGarde org](https://github.com/NetGarde) | Project home |
 
 ---
 
-## Platform documentation
-
-This repo is the **client only**. Backend, dashboard, DNS policy, and deployment live in the platform repo:
-
-| Document | Description |
-|----------|-------------|
-| [NetGarde README](https://github.com/NetGarde/NetGarde/blob/develop/README.md) | Platform overview and architecture |
-| [docs/README.md](https://github.com/NetGarde/NetGarde/blob/develop/docs/README.md) | Technical documentation index |
-| [docs/DESIGN.md](https://github.com/NetGarde/NetGarde/blob/develop/docs/DESIGN.md) | Design guide and domain model |
-| [docs/ENV_SETUP.md](https://github.com/NetGarde/NetGarde/blob/develop/docs/ENV_SETUP.md) | Server env vars (`ENROLL_BOOTSTRAP_TOKEN`, etc.) |
-
----
-
-## License
-
-Portfolio and educational use. See repository for terms.
+<p align="center"><sub>Portfolio & educational use</sub></p>
