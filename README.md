@@ -29,6 +29,16 @@ The macOS build ships as **`NetGarde.app`** — a menu bar app with connect/disc
 
 ---
 
+## Screenshots
+
+> Replace `docs/images/connection-panel-connected.png` with a redacted copy (blur VPN/DNS IPs) before publishing if needed. See [docs/images/README.md](docs/images/README.md).
+
+### macOS connection panel
+
+![Connected — live stats, VPN details, and disconnect](docs/images/connection-panel-connected.png)
+
+---
+
 ## Requirements
 
 - Python 3.9+
