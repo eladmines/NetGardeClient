@@ -13,8 +13,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pyinstaller>=6.0.0"]
+dev = ["pyinstaller>=6.0.0", "pytest>=8.0"]
 gui = ["rumps>=0.4.0; sys_platform == 'darwin'"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
 
 [project.scripts]
 trustedge-wg = "trustedge_wg.__main__:main"
