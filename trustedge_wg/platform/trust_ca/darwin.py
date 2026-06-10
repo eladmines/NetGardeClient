@@ -4,12 +4,14 @@ import logging
 import subprocess
 from pathlib import Path
 
+from trustedge_wg.paths import user_data_dir
+
 log = logging.getLogger("trustedge-wg")
 
 
 def install_trusted_root_ca(ca_pem: bytes, *, keychain: str = "/Library/Keychains/System.keychain") -> None:
     """Add TrustEdge Policy CA to macOS System keychain (requires sudo)."""
-    cache_dir = Path.home() / "Library" / "Application Support" / "trustedge"
+    cache_dir = user_data_dir()
     cache_dir.mkdir(parents=True, exist_ok=True)
     ca_path = cache_dir / "trustedge-policy-ca.crt"
     ca_path.write_bytes(ca_pem)

@@ -9,7 +9,7 @@ from urllib.parse import urlparse
 
 from trustedge_wg.constants import PRODUCTION_API_URL
 from trustedge_wg.enroll.public_ip import fetch_public_ipv4
-from trustedge_wg.gui.settings import log_file
+from trustedge_wg.gui.log_reader import read_log_lines
 from trustedge_wg.gui.tunnel_session import session_connected_at
 
 _ENROLL_RE = re.compile(
@@ -43,7 +43,6 @@ class TunnelConnectionInfo:
 @dataclass(frozen=True)
 class ConnectionSnapshot:
     connected: bool
-    status_label: str
     server_display: str
     gateway_display: str
     vpn_address: str
@@ -83,16 +82,6 @@ def parse_tunnel_log(lines: list[str]) -> TunnelConnectionInfo:
     return info
 
 
-def _read_log_lines(path: Path | None = None) -> list[str]:
-    target = path or log_file()
-    if not target.is_file():
-        return []
-    try:
-        return target.read_text(encoding="utf-8", errors="replace").splitlines()
-    except OSError:
-        return []
-
-
 def _format_duration(seconds: float) -> str:
     if seconds < 0:
         return "—"
@@ -123,12 +112,6 @@ def friendly_service_name(api_url: str) -> str:
     return DEFAULT_SERVICE_NAME
 
 
-def friendly_gateway_name(endpoint_host: str) -> str:
-    if not endpoint_host or endpoint_host == "—":
-        return "—"
-    return DEFAULT_GATEWAY_NAME
-
-
 def build_connection_snapshot(
     *,
     connected: bool,
@@ -136,18 +119,18 @@ def build_connection_snapshot(
     log_path: Path | None = None,
     include_public_ip: bool = True,
 ) -> ConnectionSnapshot:
-    lines = _read_log_lines(log_path)
+    lines = read_log_lines(log_path)
     info = parse_tunnel_log(lines)
     public_ip = fetch_public_ipv4() if (connected and include_public_ip) else ""
     connected_at = session_connected_at()
     connected_for = _format_duration(time.time() - connected_at) if connected and connected_at else "—"
     endpoint_host = info.endpoint or "—"
+    gateway_display = DEFAULT_GATEWAY_NAME if endpoint_host != "—" else "—"
 
     return ConnectionSnapshot(
         connected=connected,
-        status_label="Connected" if connected else "Disconnected",
         server_display=friendly_service_name(api_url),
-        gateway_display=friendly_gateway_name(endpoint_host),
+        gateway_display=gateway_display,
         vpn_address=info.address or "—",
         dns=info.dns or "—",
         hostname=socket.gethostname() or "—",

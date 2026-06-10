@@ -9,11 +9,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from trustedge_wg.wireguard.config import WireGuardConfig
-
-if sys.platform == "win32":
-    WG_SOCKET_DIR: Path | None = None
-else:
-    WG_SOCKET_DIR = Path("/var/run/wireguard")
+from trustedge_wg.wireguard.linux_kernel import WG_SOCKET_DIR, linux_kernel_available
 
 
 @dataclass(frozen=True)
@@ -45,7 +41,7 @@ def read_transfer_stats(
     interface: str = "wg0",
     wintun_adapter: str = "TrustEdge",
 ) -> TransferStats:
-    if sys.platform.startswith("linux") and _linux_kernel_available():
+    if sys.platform.startswith("linux") and linux_kernel_available():
         return _read_wg_show(interface or tun_name, cfg.public_key)
     if sys.platform == "win32":
         return _read_wg_show(wintun_adapter, cfg.public_key)
@@ -61,12 +57,6 @@ def uapi_socket_path(tun_name: str) -> Path | None:
     if WG_SOCKET_DIR is None:
         return None
     return WG_SOCKET_DIR / f"{tun_name}.sock"
-
-
-def _linux_kernel_available() -> bool:
-    if not shutil.which("wg"):
-        return False
-    return Path("/sys/module/wireguard").exists() or Path("/sys/module/wireguard_mod").exists()
 
 
 def _read_wg_show(iface: str, peer_pubkey: str = "") -> TransferStats:

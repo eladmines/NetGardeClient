@@ -30,8 +30,6 @@ echo "Generating menu bar icons..."
 
 mkdir -p "$BIN" "$DIST"
 
-mkdir -p "$BIN" "$DIST"
-
 WG_GO="$BIN/wireguard-go"
 if [[ ! -x "$WG_GO" ]]; then
   if command -v wireguard-go >/dev/null 2>&1; then

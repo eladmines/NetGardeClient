@@ -4,7 +4,6 @@ import argparse
 import os
 import sys
 from dataclasses import dataclass
-from pathlib import Path
 
 from trustedge_wg.constants import (
     DEFAULT_ENROLL_PATH,
@@ -40,18 +39,7 @@ class CliConfig:
     def resolve_state_path(self) -> str:
         if self.state_path.strip():
             return self.state_path.strip()
-        if sys.platform == "win32":
-            appdata = os.environ.get("APPDATA")
-            if appdata:
-                return str(Path(appdata) / "trustedge" / "agent-state.json")
-        if sys.platform == "darwin":
-            return str(agent_state_path())
-        if sys.platform.startswith("linux"):
-            xdg = os.environ.get("XDG_CONFIG_HOME")
-            if xdg:
-                return str(Path(xdg) / "trustedge" / "agent-state.json")
-            return str(Path.home() / ".config" / "trustedge" / "agent-state.json")
-        return "trustedge-agent-state.json"
+        return str(agent_state_path())
 
     def wintun_adapter_name(self) -> str:
         if sys.platform == "win32" and self.interface == "wg0":

@@ -202,18 +202,6 @@ def inject_local_private_key_into_ini(ini: str, private_key: str) -> str:
     return f"[Interface]\nPrivateKey = {private_key}\n\n" + ini
 
 
-def validate_wireguard_config(cfg: WireGuardConfig) -> WireGuardConfig:
-    if not cfg.private_key.strip():
-        raise ValueError("wireguard config: missing PrivateKey")
-    if not cfg.public_key.strip():
-        raise ValueError("wireguard config: missing peer PublicKey (server_public_key)")
-    if not cfg.endpoint.strip():
-        raise ValueError("wireguard config: missing Endpoint")
-    if not cfg.address:
-        raise ValueError("wireguard config: missing Address")
-    return finalize_wireguard_config(cfg)
-
-
 def wireguard_from_enroll(private_key: str, resp: EnrollResponse) -> WireGuardConfig:
     private_key = private_key.strip()
     if not private_key:

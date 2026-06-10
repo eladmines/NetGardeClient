@@ -19,15 +19,11 @@ from trustedge_wg.platform.bundled import find_sibling_binary
 from trustedge_wg.platform.dns import apply_dns
 from trustedge_wg.platform.routing import apply_full_tunnel_routes
 from trustedge_wg.wireguard.config import WireGuardConfig, render_wireguard_conf
+from trustedge_wg.wireguard.linux_kernel import WG_SOCKET_DIR, linux_kernel_available
 from trustedge_wg.wireguard.monitor import start_traffic_monitor
 from trustedge_wg.wireguard.uapi import build_uapi
 
 log = logging.getLogger("trustedge-wg")
-
-if sys.platform == "win32":
-    WG_SOCKET_DIR: Path | None = None
-else:
-    WG_SOCKET_DIR = Path("/var/run/wireguard")
 
 
 def normalize_endpoint(ep: str) -> str:
@@ -61,7 +57,7 @@ def resolve_endpoint_v4(host: str) -> list[ipaddress.IPv4Address]:
 def wireguard_tunnel(cfg: WireGuardConfig, opts: CliConfig) -> Iterator[str]:
     """Bring up WireGuard; yield TUN interface name; tear down on exit."""
     mtu = cfg.mtu if cfg.mtu > 0 else DEFAULT_MTU
-    if sys.platform.startswith("linux") and _linux_kernel_available():
+    if sys.platform.startswith("linux") and linux_kernel_available():
         tun_name = opts.interface
         with _linux_kernel_tunnel(tun_name, cfg, mtu):
             yield tun_name
@@ -249,14 +245,6 @@ def _ipc_set_unix(sock_path: Path, uapi_body: str) -> None:
                 raise RuntimeError(f"wireguard ipc set failed: {resp.strip()}")
     finally:
         sock.close()
-
-
-def _linux_kernel_available() -> bool:
-    if not shutil.which("wg"):
-        return False
-    return Path("/sys/module/wireguard").exists() or Path(
-        "/sys/module/wireguard_mod"
-    ).exists()
 
 
 @contextmanager

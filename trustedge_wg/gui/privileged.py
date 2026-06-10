@@ -10,6 +10,7 @@ import time
 from pathlib import Path
 
 from trustedge_wg.cli import CliConfig
+from trustedge_wg.gui.log_reader import read_log_lines
 from trustedge_wg.gui.settings import log_file, pid_file
 from trustedge_wg.gui.tunnel_session import clear_tunnel_session, tunnel_session_valid
 from trustedge_wg.paths import agent_state_path
@@ -97,18 +98,8 @@ def _pid_alive(pid: int) -> bool:
         return result.returncode == 0 and str(pid) in result.stdout
 
 
-def _log_lines() -> list[str]:
-    path = log_file()
-    if not path.is_file():
-        return []
-    try:
-        return path.read_text(encoding="utf-8", errors="replace").splitlines()
-    except OSError:
-        return []
-
-
 def _log_shows_tunnel_up(lines: list[str] | None = None) -> bool:
-    for line in lines or _log_lines():
+    for line in lines or read_log_lines():
         if "interface utun" in line and " up" in line:
             return True
         if line.startswith("trustedge-wg: interface ") and line.endswith(" up"):
@@ -303,7 +294,7 @@ def _clear_tunnel_runtime_files() -> None:
 
 
 def _log_tail(max_lines: int = 8) -> str:
-    lines = _log_lines()
+    lines = read_log_lines()
     if not lines:
         return ""
     return "\n".join(lines[-max_lines:]).strip()

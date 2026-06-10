@@ -2,19 +2,15 @@ from __future__ import annotations
 
 import json
 import os
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from pathlib import Path
 
 from trustedge_wg.constants import ENV_API_TOKEN, ENV_API_URL, PRODUCTION_API_URL
 from trustedge_wg.paths import user_data_dir
 
 
-def _user_data_dir() -> Path:
-    return user_data_dir()
-
-
 def settings_path() -> Path:
-    return _user_data_dir() / "gui-settings.json"
+    return user_data_dir() / "gui-settings.json"
 
 
 def tunnel_runtime_dir(uid: int | None = None) -> Path:
@@ -73,11 +69,6 @@ class GuiSettings:
             api_token=self.api_token or env.api_token,
             install_policy_ca=self.install_policy_ca,
         )
-
-    def save(self, path: Path | None = None) -> None:
-        target = path or settings_path()
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(json.dumps(asdict(self), indent=2) + "\n", encoding="utf-8")
 
     def missing_api_url_message(self) -> str:
         return "No API URL configured."
