@@ -1,127 +1,171 @@
 <p align="center">
-  <strong>TrustEdgeClient</strong><br/>
-  macOS WireGuard client &amp; menu bar app for the TrustEdge zero-trust platform
+  <strong>TrustEdge</strong>
 </p>
 
 <p align="center">
-  <a href="https://github.com/TrustEdge">Organization</a> ·
-  <a href="https://github.com/TrustEdge/TrustEdge">Platform</a> ·
-  <a href="https://github.com/TrustEdge/TrustEdgeClient">Client</a>
+  macOS menu bar app — connect to your TrustEdge network in one click.
 </p>
-
----
-
-## About
-
-**TrustEdgeClient** is the device-side companion to [TrustEdge](https://github.com/TrustEdge/TrustEdge) — a self-hosted network security platform I built end to end (control plane, dashboard, policy engine, and AWS deployment).
-
-This repo is the **secure access layer**: enroll a device, establish a WireGuard tunnel, route DNS through the platform gateway, and report live usage back to the admin dashboard.
-
-**Deliverables**
-
-- **`TrustEdge.app`** — native macOS menu bar application  
-- **`trustedge-wg`** — cross-platform CLI for Linux and Windows  
-- **Packaged build pipeline** — PyInstaller bundle + GitHub Actions  
-
----
-
-## Screenshots
 
 <p align="center">
-  <img src="docs/images/connection-panel-connected.png" alt="TrustEdge connection panel — connected state with live traffic" width="420" />
+  <a href="https://github.com/TrustEdgeOrg/TrustEdgeClient">TrustEdgeClient</a> ·
+  <a href="https://github.com/TrustEdgeOrg/TrustEdge">TrustEdge platform</a>
 </p>
 
-<p align="center"><em>Connection panel — status, session details, live traffic, connect / disconnect</em></p>
+---
+
+## What is this?
+
+**TrustEdge** is a Mac app that lives in your menu bar. It connects your Mac to a [TrustEdge](https://github.com/TrustEdgeOrg/TrustEdge) network — securely, without managing WireGuard files yourself.
+
+Click **Connect** and the app:
+
+- Registers your Mac with the TrustEdge server
+- Opens an encrypted VPN tunnel
+- Routes DNS through TrustEdge so policy applies to all apps
+- Shows your connection status and live traffic in the menu bar
 
 ---
 
-## What this project shows
+## What you need
 
-| | |
-|---|---|
-| **Network security** | WireGuard VPN, device enrollment, DNS policy path through the gateway |
-| **Systems engineering** | TUN interfaces, routing, privileged macOS DNS and tunnel lifecycle |
-| **Product engineering** | Menu bar UX, connection panel, session handling, orphan cleanup |
-| **Full-stack integration** | Client ↔ control plane ↔ live dashboard telemetry |
-| **Shipping software** | PyInstaller macOS app, CI build, installable `.app` bundle |
+- **macOS**
+- Your **TrustEdge API URL** (from your admin)
+- An optional **API token** (only if your admin gave you one)
 
 ---
 
-## How secure connect works
+## Setup (3 steps)
 
-When the user clicks **Connect**, the client runs a zero-trust enrollment flow — no pre-shared WireGuard config file required.
+### 1. Get the app
 
-**1. Device identity & keys**  
-The client generates a **WireGuard key pair**. The **private key never leaves the device**. Only the **public key** is sent to the platform, together with a stable device identity (hostname, hardware id).
+**From source (development):**
 
-**2. Enrollment**  
-The control plane validates the request, registers the device, assigns a VPN address from its pool, and tells the gateway to accept this peer.
+```bash
+git clone https://github.com/TrustEdgeOrg/TrustEdgeClient.git
+cd TrustEdgeClient
+make install-gui
+```
 
-**3. Tunnel configuration**  
-The server returns everything the client needs: server public key, tunnel address, DNS gateway, and routing rules. The client builds the WireGuard session locally.
+**Or build a standalone app:**
 
-**4. Connect**  
-The tunnel comes up (TUN interface + routes). DNS is pointed at the platform gateway so **policy applies to all lookups** — not just browser traffic.
+```bash
+make build-mac
+open dist/TrustEdge.app
+```
 
-**5. Live visibility**  
-While connected, the client reports tunnel usage to the dashboard so operators see **live bandwidth** per device.
+You can copy `TrustEdge.app` to your Applications folder.
+
+> First launch: if macOS blocks the app, right-click **TrustEdge.app** → **Open**.
+
+---
+
+### 2. Add your server address
+
+Create a `.env` file with your TrustEdge server URL.
+
+**Development (running from source):**
+
+```bash
+cp .env.example .env
+```
+
+**Installed app** — create this file:
+
+```
+~/Library/Application Support/TrustEdgeClient/.env
+```
+
+Put this inside (replace with your real server):
+
+```env
+TRUSTEDGE_API_URL=https://your-api.example.com
+TRUSTEDGE_API_TOKEN=
+```
+
+Leave `TRUSTEDGE_API_TOKEN` empty unless your admin gave you a token.
+
+---
+
+### 3. Connect
+
+**Development:**
+
+```bash
+make run-gui
+```
+
+**Installed app:** open **TrustEdge** from Applications. Click the menu bar icon → **Connect**.
+
+macOS will ask for your password — that’s normal. The VPN needs admin access to set up the tunnel.
+
+---
+
+## The connection panel
+
+<p align="center">
+  <img src="docs/images/connection-panel-connected.png" alt="TrustEdge connected — VPN IP, gateway, and live traffic" width="440" />
+</p>
+
+When connected you can see:
+
+- Your **VPN IP address**
+- **Gateway** and DNS info
+- **Live upload / download** speeds
+- How long you’ve been connected
+
+Click **Disconnect** when you’re done.
+
+---
+
+## What happens when you connect?
+
+1. TrustEdge creates encryption keys on your Mac. Your **private key never leaves the device**.
+2. The app registers your Mac with the TrustEdge server.
+3. The server sends back tunnel settings (address, DNS, server key).
+4. The VPN tunnel opens and DNS is pointed at TrustEdge.
+5. Your admin can see live bandwidth for your device on the dashboard.
+
+<details>
+<summary><strong>See the technical flow</strong></summary>
 
 ```mermaid
 sequenceDiagram
-    autonumber
-    actor User
-    participant Client as TrustEdgeClient
-    participant API as Control plane
-    participant GW as WireGuard gateway
-    participant Dash as Dashboard
+    actor You
+    participant App as TrustEdge.app
+    participant API as TrustEdge server
+    participant VPN as WireGuard gateway
 
-    User->>Client: Connect
-    Client->>Client: Generate key pair (private key stays local)
-    Client->>API: Enroll device identity + public key
-    API->>API: Register device, assign VPN address
-    API->>GW: Authorize peer on gateway
-    API-->>Client: Server public key, tunnel config, DNS
-    Client->>Client: WireGuard tunnel + system DNS
-    loop While connected
-        Client->>API: Tunnel usage telemetry
-        API->>Dash: Live bandwidth per device
-    end
+    You->>App: Connect
+    App->>App: Create keys (private key stays on Mac)
+    App->>API: Register device
+    API-->>App: Tunnel settings
+    App->>VPN: Open encrypted tunnel
+    App->>API: Send usage stats while connected
 ```
 
-> **Why this matters:** identity is established *before* access is granted; keys are asymmetric (no shared secret on the wire); policy enforcement stays on the infrastructure you control — the same principles as enterprise ZTNA, in a project you can demo end to end.
+</details>
 
 ---
 
-## How it fits in TrustEdge
+## Troubleshooting
 
-```
-  Laptop / phone                    TrustEdge platform
-  ─────────────                     ─────────────────
-  TrustEdgeClient  ── enroll ──►     API + device identity
-        │                           WireGuard gateway
-        ├── tunnel + DNS ──►        DNS policy (dnsmasq)
-        └── usage stats ──►         Live dashboard charts
-```
-
-Policy, blocking, quarantine, and monitoring live on the **server**. The client focuses on **connectivity and visibility** — the same split you see in enterprise ZTNA / SASE products.
+| Problem | What to do |
+|---------|------------|
+| “No API URL configured” | Add `TRUSTEDGE_API_URL` to your `.env` file (see step 2) |
+| macOS asks for password | Expected — allow it so the tunnel can start |
+| App won’t open (security warning) | Right-click **TrustEdge.app** → **Open** |
+| Already connected / stuck | Quit the app and try **Disconnect**, then reconnect |
+| No traffic on dashboard | Disconnect and connect again once |
 
 ---
 
-## Built with
+## Links
 
-Python · WireGuard · wireguard-go · rumps · AppKit · PyInstaller · GitHub Actions
-
-Backend & dashboard: [TrustEdge platform →](https://github.com/TrustEdge/TrustEdge)
-
----
-
-## Explore
-
-| | |
-|---|---|
-| [TrustEdge](https://github.com/TrustEdge/TrustEdge) | Platform — FastAPI, React, DNS policy, behavior analytics, AWS |
-| [TrustEdge org](https://github.com/TrustEdge) | Project home |
+- [TrustEdge platform](https://github.com/TrustEdgeOrg/TrustEdge) — server, dashboard, and policy engine
+- [TrustEdgeOrg](https://github.com/TrustEdgeOrg) on GitHub
 
 ---
 
-<p align="center"><sub>Portfolio & educational use</sub></p>
+<p align="center">
+  <sub>Need help? Open an issue on <a href="https://github.com/TrustEdgeOrg/TrustEdgeClient">GitHub</a>.</sub>
+</p>
