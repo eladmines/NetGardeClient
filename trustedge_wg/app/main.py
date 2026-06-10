@@ -30,7 +30,7 @@ def resolve_wireguard_config(opts: CliConfig):
             raise RuntimeError(
                 f"config file not found: {opts.config_path}\n\n"
                 "Create one from the example, then edit keys and Endpoint:\n"
-                "  cp client.example.conf my.conf\n"
+                "  cp examples/client.example.conf my.conf\n"
                 "  sudo trustedge-wg --config ./my.conf"
             )
         return load_config(opts.config_path)

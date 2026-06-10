@@ -53,10 +53,10 @@ rm -rf build dist
 mkdir -p "$DIST"
 
 echo "Building CLI binary..."
-"$PY" -m PyInstaller --noconfirm trustedge-wg.spec
+"$PY" -m PyInstaller --noconfirm packaging/trustedge-wg.spec
 
 echo "Building TrustEdge.app..."
-"$PY" -m PyInstaller --noconfirm trustedge-gui.spec
+"$PY" -m PyInstaller --noconfirm packaging/trustedge-gui.spec
 
 cp "$WG_GO" "$DIST/wireguard-go"
 cp "$DIST/trustedge-wg" "$APP_MACOS/trustedge-wg"

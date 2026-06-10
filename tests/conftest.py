@@ -8,6 +8,11 @@ from trustedge_wg import env as env_module
 from trustedge_wg.constants import ENV_API_TOKEN, ENV_API_URL
 from trustedge_wg.wireguard.keys import generate_private_key, public_key_from_private
 
+# Mock tunnel addresses for tests only — not production values.
+MOCK_VPN_ADDRESS = "10.0.0.3/32"
+MOCK_VPN_DNS = "10.0.0.1"
+MOCK_GATEWAY_ENDPOINT = "gw.example.com:51820"
+
 
 @pytest.fixture(autouse=True)
 def reset_dotenv_state(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -38,13 +43,13 @@ def tmp_user_data(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 def sample_wireguard_ini(private_key: str, public_key: str) -> str:
     return f"""[Interface]
 PrivateKey = {private_key}
-Address = 10.0.0.3/32
-DNS = 10.0.0.1
+Address = {MOCK_VPN_ADDRESS}
+DNS = {MOCK_VPN_DNS}
 MTU = 1420
 
 [Peer]
 PublicKey = {public_key}
-Endpoint = gw.example.com:51820
+Endpoint = {MOCK_GATEWAY_ENDPOINT}
 AllowedIPs = 0.0.0.0/0, ::/0
 PersistentKeepalive = 25
 """

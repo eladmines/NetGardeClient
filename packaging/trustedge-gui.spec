@@ -1,6 +1,10 @@
 # -*- mode: python ; coding: utf-8 -*-
 """PyInstaller spec for TrustEdge menu bar .app (double-click)."""
 
+import os
+
+ROOT = os.path.abspath(os.path.join(SPECPATH, ".."))
+
 block_cipher = None
 
 hiddenimports = [
@@ -15,10 +19,10 @@ hiddenimports = [
 ]
 
 a = Analysis(
-    ["trustedge_wg/gui/app.py"],
-    pathex=[],
+    [os.path.join(ROOT, "trustedge_wg/gui/app.py")],
+    pathex=[ROOT],
     binaries=[],
-    datas=[("trustedge_wg/gui/assets", "trustedge_wg/gui/assets")],
+    datas=[(os.path.join(ROOT, "trustedge_wg/gui/assets"), "trustedge_wg/gui/assets")],
     hiddenimports=hiddenimports,
     hookspath=[],
     hooksconfig={},

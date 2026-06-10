@@ -1,6 +1,10 @@
 # -*- mode: python ; coding: utf-8 -*-
 """PyInstaller spec for trustedge-wg macOS CLI binary."""
 
+import os
+
+ROOT = os.path.abspath(os.path.join(SPECPATH, ".."))
+
 block_cipher = None
 
 hiddenimports = [
@@ -9,8 +13,8 @@ hiddenimports = [
 ]
 
 a = Analysis(
-    ["trustedge_wg/__main__.py"],
-    pathex=[],
+    [os.path.join(ROOT, "trustedge_wg/__main__.py")],
+    pathex=[ROOT],
     binaries=[],
     datas=[],
     hiddenimports=hiddenimports,
