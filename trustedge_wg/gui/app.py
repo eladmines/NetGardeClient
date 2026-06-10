@@ -2,6 +2,10 @@ from __future__ import annotations
 
 import sys
 
+from trustedge_wg import env
+
+env.load_dotenv()
+
 import rumps
 from rumps import events
 

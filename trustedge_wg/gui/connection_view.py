@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import urlparse
 
-from trustedge_wg.constants import PRODUCTION_API_URL
+from trustedge_wg import env
 from trustedge_wg.enroll.public_ip import fetch_public_ipv4
 from trustedge_wg.gui.log_reader import read_log_lines
 from trustedge_wg.gui.tunnel_session import session_connected_at
@@ -103,7 +103,8 @@ def friendly_service_name(api_url: str) -> str:
     url = api_url.strip()
     if not url:
         return "Not configured"
-    if url.rstrip("/") == PRODUCTION_API_URL.rstrip("/"):
+    configured = env.api_url()
+    if configured and url.rstrip("/") == configured.rstrip("/"):
         return DEFAULT_SERVICE_NAME
     parsed = urlparse(url)
     host = (parsed.hostname or "").strip()

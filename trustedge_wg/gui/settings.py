@@ -5,7 +5,7 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
-from trustedge_wg.constants import ENV_API_TOKEN, ENV_API_URL, PRODUCTION_API_URL
+from trustedge_wg import env
 from trustedge_wg.paths import user_data_dir
 
 
@@ -35,14 +35,7 @@ class GuiSettings:
 
     @classmethod
     def from_env(cls) -> GuiSettings:
-        return cls(
-            api_url=os.environ.get(ENV_API_URL, "").strip(),
-            api_token=os.environ.get(ENV_API_TOKEN, "").strip(),
-        )
-
-    @classmethod
-    def production_defaults(cls) -> GuiSettings:
-        return cls(api_url=PRODUCTION_API_URL)
+        return cls(api_url=env.api_url(), api_token=env.api_token())
 
     @classmethod
     def load(cls, path: Path | None = None) -> GuiSettings:
@@ -61,12 +54,11 @@ class GuiSettings:
         return saved.with_defaults()
 
     def with_defaults(self) -> GuiSettings:
-        """Saved settings, then env overrides, then production API URL."""
-        env = self.from_env()
-        prod = self.production_defaults()
+        """Saved settings, then .env / environment overrides."""
+        from_env = self.from_env()
         return GuiSettings(
-            api_url=self.api_url or env.api_url or prod.api_url,
-            api_token=self.api_token or env.api_token,
+            api_url=self.api_url or from_env.api_url,
+            api_token=self.api_token or from_env.api_token,
             install_policy_ca=self.install_policy_ca,
         )
 

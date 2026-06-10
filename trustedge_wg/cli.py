@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import argparse
-import os
 import sys
 from dataclasses import dataclass
 
+from trustedge_wg import env
 from trustedge_wg.constants import (
     DEFAULT_ENROLL_PATH,
     DEFAULT_POLICY_CA_PATH,
@@ -13,7 +13,6 @@ from trustedge_wg.constants import (
     DEFAULT_WINTUN_NAME,
     ENV_API_TOKEN,
     ENV_API_URL,
-    PRODUCTION_API_URL,
 )
 from trustedge_wg.paths import agent_state_path
 
@@ -48,7 +47,7 @@ class CliConfig:
 
 
 def usage_text() -> str:
-    api_default = PRODUCTION_API_URL or f"(set {ENV_API_URL} in .env)"
+    api_default = env.api_url() or f"(set {ENV_API_URL} in .env)"
     return f"""usage:
   Offline:  trustedge-wg --config /path/to/client.conf [--no-routing]
   API:      trustedge-wg [--api-url URL] [--api-token TOKEN] [--state PATH] [--config-out PATH]
@@ -66,8 +65,8 @@ def parse_cli(argv: list[str] | None = None) -> CliConfig:
         epilog=usage_text(),
     )
     p.add_argument("--config", default="", help="WireGuard .conf (offline; ignores --api-url)")
-    p.add_argument("--api-url", default=PRODUCTION_API_URL, help="TrustEdge API base URL")
-    p.add_argument("--api-token", default=os.environ.get(ENV_API_TOKEN, ""), help="Bearer token (enroll bootstrap)")
+    p.add_argument("--api-url", default=env.api_url(), help="TrustEdge API base URL")
+    p.add_argument("--api-token", default=env.api_token(), help="Bearer token (enroll bootstrap)")
     p.add_argument("--api-enroll-path", default=DEFAULT_ENROLL_PATH, help="Enroll path")
     p.add_argument("--state", default="", help="Agent state JSON path")
     p.add_argument("--config-out", default="", help="Write merged .conf after enroll")
