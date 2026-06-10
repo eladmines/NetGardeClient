@@ -3,9 +3,9 @@ requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "netgarde-wg"
+name = "trustedge-wg"
 version = "0.1.0"
-description = "NetGarde userspace WireGuard client (Python)"
+description = "TrustEdge userspace WireGuard client (Python)"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
@@ -14,13 +14,15 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pyinstaller>=6.0.0"]
+gui = ["rumps>=0.4.0; sys_platform == 'darwin'"]
 
 [project.scripts]
-netgarde-wg = "netgarde_wg.__main__:main"
+trustedge-wg = "trustedge_wg.__main__:main"
+trustedge-wg-gui = "trustedge_wg.gui.app:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["netgarde_wg*"]
+include = ["trustedge_wg*"]
 
 [tool.setuptools.package-data]
-netgarde_wg = ["py.typed"]
+trustedge_wg = ["py.typed", "gui/assets/*.png"]

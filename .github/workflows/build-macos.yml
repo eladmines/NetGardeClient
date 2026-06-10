@@ -18,19 +18,20 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Build netgarde-wg + wireguard-go
+      - name: Build TrustEdge.app + CLI
         run: bash scripts/build-macos.sh
 
-      - name: Smoke test
-        run: ./dist/netgarde-wg --help
+      - name: Smoke test CLI
+        run: ./dist/trustedge-wg --help
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: netgarde-wg-macos-${{ runner.arch }}
+          name: trustedge-macos-${{ runner.arch }}
           path: |
-            dist/netgarde-wg
+            dist/trustedge-wg
             dist/wireguard-go
+            dist/TrustEdge.app
           if-no-files-found: error
 
       - name: Upload release assets
@@ -38,7 +39,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dist/netgarde-wg
+            dist/trustedge-wg
             dist/wireguard-go
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
