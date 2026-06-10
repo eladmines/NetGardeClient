@@ -1,0 +1,1 @@
+"""TrustEdge WireGuard client."""

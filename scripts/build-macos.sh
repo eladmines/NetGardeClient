@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build netgarde-wg CLI, NetGarde.app (menu bar), and bundle wireguard-go.
+# Build trustedge-wg CLI, TrustEdge.app (menu bar), and bundle wireguard-go.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -10,7 +10,7 @@ PY="$VENV/bin/python"
 PIP="$VENV/bin/pip"
 DIST="$ROOT/dist"
 BIN="$ROOT/bin"
-APP="$DIST/NetGarde.app"
+APP="$DIST/TrustEdge.app"
 APP_MACOS="$APP/Contents/MacOS"
 
 if [[ "$(uname -s)" != "Darwin" ]]; then
@@ -26,9 +26,7 @@ fi
 "$PIP" install ".[dev,gui]"
 
 echo "Generating menu bar icons..."
-"$PY" -c "from pathlib import Path; from netgarde_wg.gui.icons import _draw_icon, _write_png; d=Path('netgarde_wg/gui/assets'); d.mkdir(parents=True, exist_ok=True); _write_png(_draw_icon(connected=False), d/'menubar-disconnected.png'); _write_png(_draw_icon(connected=True), d/'menubar-connected.png')"
-
-mkdir -p "$BIN" "$DIST"
+"$PY" -c "from pathlib import Path; from trustedge_wg.gui.icons import _draw_icon, _write_png; d=Path('trustedge_wg/gui/assets'); d.mkdir(parents=True, exist_ok=True); _write_png(_draw_icon(connected=False), d/'menubar-disconnected.png'); _write_png(_draw_icon(connected=True), d/'menubar-connected.png')"
 
 mkdir -p "$BIN" "$DIST"
 
@@ -55,19 +53,19 @@ rm -rf build dist
 mkdir -p "$DIST"
 
 echo "Building CLI binary..."
-"$PY" -m PyInstaller --noconfirm netgarde-wg.spec
+"$PY" -m PyInstaller --noconfirm trustedge-wg.spec
 
-echo "Building NetGarde.app..."
-"$PY" -m PyInstaller --noconfirm netgarde-gui.spec
+echo "Building TrustEdge.app..."
+"$PY" -m PyInstaller --noconfirm trustedge-gui.spec
 
 cp "$WG_GO" "$DIST/wireguard-go"
-cp "$DIST/netgarde-wg" "$APP_MACOS/netgarde-wg"
+cp "$DIST/trustedge-wg" "$APP_MACOS/trustedge-wg"
 cp "$WG_GO" "$APP_MACOS/wireguard-go"
-chmod +x "$DIST/netgarde-wg" "$DIST/wireguard-go" "$APP_MACOS/netgarde-wg" "$APP_MACOS/wireguard-go"
+chmod +x "$DIST/trustedge-wg" "$DIST/wireguard-go" "$APP_MACOS/trustedge-wg" "$APP_MACOS/wireguard-go"
 
 echo ""
 echo "Built:"
-echo "  $DIST/netgarde-wg"
+echo "  $DIST/trustedge-wg"
 echo "  $DIST/wireguard-go"
 echo "  $APP"
 echo ""
@@ -75,5 +73,5 @@ echo "Double-click: open $APP"
 echo "Or copy to Applications:"
 echo "  cp -R $APP /Applications/"
 echo ""
-echo "First launch: if macOS blocks the app, right-click NetGarde.app → Open."
+echo "First launch: if macOS blocks the app, right-click TrustEdge.app → Open."
 echo "Connect from the NG menu bar icon (admin password required for VPN)."

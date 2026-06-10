@@ -1,5 +1,7 @@
-/netgarde-wg
 bin/
+.env
+.env.*
+!.env.example
 *.conf
 !client.example.conf
 .venv/

@@ -2,7 +2,7 @@ name: Build macOS binary
 
 on:
   push:
-    branches: [main, develop, feature/macos-menu-bar]
+    branches: [main, develop]
     tags: ["v*"]
   pull_request:
     branches: [main, develop]
@@ -18,20 +18,20 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Build NetGarde.app + CLI
+      - name: Build TrustEdge.app + CLI
         run: bash scripts/build-macos.sh
 
       - name: Smoke test CLI
-        run: ./dist/netgarde-wg --help
+        run: ./dist/trustedge-wg --help
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: netgarde-macos-${{ runner.arch }}
+          name: trustedge-macos-${{ runner.arch }}
           path: |
-            dist/netgarde-wg
+            dist/trustedge-wg
             dist/wireguard-go
-            dist/NetGarde.app
+            dist/TrustEdge.app
           if-no-files-found: error
 
       - name: Upload release assets
@@ -39,7 +39,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dist/netgarde-wg
+            dist/trustedge-wg
             dist/wireguard-go
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
