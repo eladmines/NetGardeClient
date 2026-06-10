@@ -15,14 +15,14 @@
 
 ## What is this?
 
-**TrustEdge** is a Mac app that lives in your menu bar. It connects your Mac to a [TrustEdge](https://github.com/TrustEdgeOrg/TrustEdge) network — securely, without managing WireGuard files yourself.
+**TrustEdge** is a Mac app in your menu bar. It connects your Mac to a [TrustEdge](https://github.com/TrustEdgeOrg/TrustEdge) network — no WireGuard files to manage.
 
 Click **Connect** and the app:
 
 - Registers your Mac with the TrustEdge server
 - Opens an encrypted VPN tunnel
 - Routes DNS through TrustEdge so policy applies to all apps
-- Shows your connection status and live traffic in the menu bar
+- Shows connection status and live traffic
 
 ---
 
@@ -34,48 +34,36 @@ Click **Connect** and the app:
 
 ---
 
-## Setup (3 steps)
+## Install (3 steps)
 
-### 1. Get the app
+### 1. Get TrustEdge.app
 
-**From source (development):**
+**From a release** — download `TrustEdge.app` from [GitHub Releases](https://github.com/TrustEdgeOrg/TrustEdgeClient/releases) and copy it to **Applications**.
+
+**Or build it yourself** (requires Xcode command-line tools and Python 3.9+):
 
 ```bash
 git clone https://github.com/TrustEdgeOrg/TrustEdgeClient.git
 cd TrustEdgeClient
-make install-gui
-```
-
-**Or build a standalone app:**
-
-```bash
 make build-mac
-open dist/TrustEdge.app
+cp -R dist/TrustEdge.app /Applications/
 ```
 
-You can copy `TrustEdge.app` to your Applications folder.
+> **First launch:** if macOS blocks the app, right-click **TrustEdge.app** → **Open**.
 
-> First launch: if macOS blocks the app, right-click **TrustEdge.app** → **Open**.
+See [docs/BUILD.md](docs/BUILD.md) for build details and troubleshooting.
 
 ---
 
-### 2. Add your server address
+### 2. Configure your server
 
-Create a `.env` file with your TrustEdge server URL.
-
-**Development (running from source):**
-
-```bash
-cp .env.example .env
-```
-
-**Installed app** — create this file:
+Create this file:
 
 ```
 ~/Library/Application Support/TrustEdgeClient/.env
 ```
 
-Put this inside (replace with your real server):
+Paste your server settings (ask your admin for the URL):
 
 ```env
 TRUSTEDGE_API_URL=https://your-api.example.com
@@ -84,23 +72,21 @@ TRUSTEDGE_API_TOKEN=
 
 Leave `TRUSTEDGE_API_TOKEN` empty unless your admin gave you a token.
 
+> This file contains secrets. Never share it or commit it to git.
+
 ---
 
 ### 3. Connect
 
-**Development:**
+1. Open **TrustEdge** from Applications
+2. Click the menu bar icon
+3. Click **Connect**
 
-```bash
-make run-gui
-```
-
-**Installed app:** open **TrustEdge** from Applications. Click the menu bar icon → **Connect**.
-
-macOS will ask for your password — that’s normal. The VPN needs admin access to set up the tunnel.
+macOS will ask for your password — that’s normal. The VPN needs admin access to start.
 
 ---
 
-## The connection panel
+## Connection panel
 
 <p align="center">
   <img src="docs/images/connection-panel-connected.png" alt="TrustEdge connected — VPN IP, gateway, and live traffic" width="440" />
@@ -121,12 +107,12 @@ Click **Disconnect** when you’re done.
 
 1. TrustEdge creates encryption keys on your Mac. Your **private key never leaves the device**.
 2. The app registers your Mac with the TrustEdge server.
-3. The server sends back tunnel settings (address, DNS, server key).
+3. The server sends tunnel settings (address, DNS, server key).
 4. The VPN tunnel opens and DNS is pointed at TrustEdge.
-5. Your admin can see live bandwidth for your device on the dashboard.
+5. Your admin sees live bandwidth for your device on the dashboard.
 
 <details>
-<summary><strong>See the technical flow</strong></summary>
+<summary><strong>Technical flow</strong></summary>
 
 ```mermaid
 sequenceDiagram
@@ -151,21 +137,32 @@ sequenceDiagram
 
 | Problem | What to do |
 |---------|------------|
-| “No API URL configured” | Add `TRUSTEDGE_API_URL` to your `.env` file (see step 2) |
+| “No API URL configured” | Create the `.env` file in step 2 with `TRUSTEDGE_API_URL` |
 | macOS asks for password | Expected — allow it so the tunnel can start |
 | App won’t open (security warning) | Right-click **TrustEdge.app** → **Open** |
-| Already connected / stuck | Quit the app and try **Disconnect**, then reconnect |
-| No traffic on dashboard | Disconnect and connect again once |
+| Stuck / already connected | Quit the app, click **Disconnect**, then reconnect |
+| No traffic on dashboard | Disconnect and connect once more |
+
+More help: [docs/BUILD.md](docs/BUILD.md#troubleshooting-build)
+
+---
+
+## More documentation
+
+| Doc | For |
+|-----|-----|
+| [docs/BUILD.md](docs/BUILD.md) | Building the app, running from source, tests |
+| [docs/CLI.md](docs/CLI.md) | Command-line client (`trustedge-wg`) for admins and scripts |
 
 ---
 
 ## Links
 
-- [TrustEdge platform](https://github.com/TrustEdgeOrg/TrustEdge) — server, dashboard, and policy engine
+- [TrustEdge platform](https://github.com/TrustEdgeOrg/TrustEdge) — server, dashboard, policy engine
 - [TrustEdgeOrg](https://github.com/TrustEdgeOrg) on GitHub
 
 ---
 
 <p align="center">
-  <sub>Need help? Open an issue on <a href="https://github.com/TrustEdgeOrg/TrustEdgeClient">GitHub</a>.</sub>
+  <sub>Need help? <a href="https://github.com/TrustEdgeOrg/TrustEdgeClient/issues">Open an issue</a>.</sub>
 </p>
