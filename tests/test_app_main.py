@@ -7,7 +7,7 @@ from unittest.mock import patch
 import pytest
 
 from trustedge_wg.agent.state import AgentState
-from trustedge_wg.app.main import resolve_wireguard_config
+from trustedge_wg.app.main import main, resolve_wireguard_config, run
 from trustedge_wg.cli import CliConfig
 from trustedge_wg.constants import CACHED_WG_CONF_PERM
 from trustedge_wg.wireguard.config import parse_wireguard_config, render_wireguard_conf
@@ -94,3 +94,30 @@ def test_resolve_wireguard_config_requires_api_or_config() -> None:
     opts = CliConfig()
     with pytest.raises(RuntimeError, match="usage:"):
         resolve_wireguard_config(opts)
+
+
+def test_main_help_exits_zero() -> None:
+    assert main(["--help"]) == 0
+
+
+def test_main_missing_config_returns_one() -> None:
+    assert main(["--config", "/nonexistent/client.conf"]) == 1
+
+
+def test_run_invokes_tunnel_lifecycle(
+    tmp_path,
+    sample_wireguard_ini: str,
+    monkeypatch,
+) -> None:
+    conf = tmp_path / "client.conf"
+    conf.write_text(sample_wireguard_ini, encoding="utf-8")
+    opts = CliConfig(config_path=str(conf))
+    called: dict[str, bool] = {}
+
+    def fake_run_tunnel(*_args, **_kwargs) -> None:
+        called["tunnel"] = True
+
+    monkeypatch.setattr("trustedge_wg.app.main.run_tunnel", fake_run_tunnel)
+    monkeypatch.setattr("trustedge_wg.app.main.install_policy_ca_if_requested", lambda *_a, **_k: None)
+    run(opts)
+    assert called["tunnel"] is True

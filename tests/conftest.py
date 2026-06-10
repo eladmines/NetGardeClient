@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from trustedge_wg import env as env_module
@@ -22,6 +24,14 @@ def private_key() -> str:
 @pytest.fixture
 def public_key(private_key: str) -> str:
     return public_key_from_private(private_key)
+
+
+@pytest.fixture
+def tmp_user_data(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    data_dir = tmp_path / "TrustEdgeClient"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setattr("trustedge_wg.paths.user_data_dir", lambda: data_dir)
+    return data_dir
 
 
 @pytest.fixture

@@ -67,6 +67,15 @@ def test_client_enroll_network_error() -> None:
             client.enroll(req)
 
 
+def test_client_fetch_block_page_ca() -> None:
+    client = Client("https://api.example.com")
+    pem = b"-----BEGIN CERTIFICATE-----\nTEST\n-----END CERTIFICATE-----\n"
+    with patch("trustedge_wg.enroll.api.urlopen", return_value=mock_urlopen_response(pem)) as mock_open:
+        assert client.fetch_block_page_ca() == pem
+    sent = mock_open.call_args[0][0]
+    assert sent.full_url == "https://api.example.com/policy/block-page-ca"
+
+
 def test_client_report_usage_uses_device_token() -> None:
     client = Client("https://api.example.com", device_token="device-tok")
     with patch("trustedge_wg.enroll.api.urlopen", return_value=mock_urlopen_response(b"")) as mock_open:

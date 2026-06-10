@@ -33,6 +33,28 @@ def test_resolve_state_path_default_matches_paths_module() -> None:
     assert opts.resolve_state_path() == str(agent_state_path())
 
 
+def test_parse_cli_explicit_stats_interval() -> None:
+    opts = parse_cli(["--api-url", "https://api.example.com", "--stats-interval", "10"])
+    assert opts.stats_interval == 10.0
+
+
+def test_parse_cli_config_out_and_state() -> None:
+    opts = parse_cli(
+        [
+            "--api-url",
+            "https://api.example.com",
+            "--state",
+            "/tmp/state.json",
+            "--config-out",
+            "/tmp/out.conf",
+            "--install-policy-ca",
+        ]
+    )
+    assert opts.state_path == "/tmp/state.json"
+    assert opts.config_out == "/tmp/out.conf"
+    assert opts.install_policy_ca is True
+
+
 def test_wintun_adapter_name() -> None:
     opts = CliConfig(interface="wg0")
     if __import__("sys").platform == "win32":
