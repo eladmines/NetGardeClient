@@ -48,12 +48,13 @@ class CliConfig:
 
 
 def usage_text() -> str:
+    api_default = PRODUCTION_API_URL or f"(set {ENV_API_URL} in .env)"
     return f"""usage:
   Offline:  trustedge-wg --config /path/to/client.conf [--no-routing]
   API:      trustedge-wg [--api-url URL] [--api-token TOKEN] [--state PATH] [--config-out PATH]
 
-  Default API URL: {PRODUCTION_API_URL}
-  Override via --api-url, {ENV_API_URL}, or GUI Settings
+  Default API URL: {api_default}
+  Override via --api-url, {ENV_API_URL} in .env, or GUI Settings
 """
 
 
@@ -65,7 +66,7 @@ def parse_cli(argv: list[str] | None = None) -> CliConfig:
         epilog=usage_text(),
     )
     p.add_argument("--config", default="", help="WireGuard .conf (offline; ignores --api-url)")
-    p.add_argument("--api-url", default=os.environ.get(ENV_API_URL, PRODUCTION_API_URL), help="TrustEdge API base URL")
+    p.add_argument("--api-url", default=PRODUCTION_API_URL, help="TrustEdge API base URL")
     p.add_argument("--api-token", default=os.environ.get(ENV_API_TOKEN, ""), help="Bearer token (enroll bootstrap)")
     p.add_argument("--api-enroll-path", default=DEFAULT_ENROLL_PATH, help="Enroll path")
     p.add_argument("--state", default="", help="Agent state JSON path")
